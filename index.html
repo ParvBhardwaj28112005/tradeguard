@@ -1634,51 +1634,118 @@ ul { list-style: none; }
           <span class="sub">large order · adaptive auto-cancel on tolerance breach</span>
         </div>
         <div class="panel">
-          <div class="pf-top">
-            <div class="pf-order-desc">
-              Buy order —
-              <input type="text" id="pfSymbol" class="input symbol" value="RELIANCE" maxlength="20" spellcheck="false"> ·
-              qty <input type="number" id="pfQty" class="input qty" value="2000" min="10" step="10"> ·
-              <span class="tol-group">
-                tolerance
-                <input type="number" id="pfTolPct" class="tol-input" value="0.35" min="0.01" max="5" step="0.01">
-                <span class="label">%</span>
-                <span class="sep">|</span>
-                <span class="label">₹</span>
-                <input type="number" id="pfTolRupee" class="tol-input rupee" value="10.29" min="0.01" step="0.01">
-              </span>
-              above reference ₹
-              <input type="number" id="pfRefPrice" class="input ref" value="2940.00" min="0.01" step="0.05">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <!-- ORDER FORM -->
+            <div>
+              <div class="field">
+                <label>Broker Selection</label>
+                <select id="pfBroker" class="input" style="width: 100%; padding: 8px 12px; margin-bottom: 8px;">
+                  <option value="Zerodha">Zerodha</option>
+                  <option value="Angel One">Angel One</option>
+                  <option value="Groww">Groww</option>
+                </select>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="field">
+                  <label>Symbol</label>
+                  <input type="text" id="pfSymbol" class="input symbol" value="RELIANCE" maxlength="20" spellcheck="false" style="width: 100%; padding: 8px 12px;">
+                </div>
+                <div class="field">
+                  <label>Buy / Sell</label>
+                  <select id="pfSide" class="input" style="width: 100%; padding: 8px 12px;">
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="field">
+                  <label>Order Type</label>
+                  <select id="pfOrderType" class="input" style="width: 100%; padding: 8px 12px;">
+                    <option value="MARKET">Market</option>
+                    <option value="LIMIT">Limit</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Quantity</label>
+                  <input type="number" id="pfQty" class="input" value="1000000" min="1" step="1" style="width: 100%; padding: 8px 12px;">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="field">
+                  <label>Target Price (₹)</label>
+                  <input type="number" id="pfRefPrice" class="input" value="250.00" min="0.01" step="0.05" style="width: 100%; padding: 8px 12px;">
+                </div>
+                <div class="field">
+                  <label>Max Slippage (%)</label>
+                  <input type="number" id="pfTolPct" class="input" value="0.05" min="0.01" max="5" step="0.01" style="width: 100%; padding: 8px 12px;">
+                </div>
+              </div>
+              <div class="actions" style="margin-top: 14px;">
+                <button class="btn" id="pfRunBtn" style="width: 100%; padding: 10px;">▶ Execute Order</button>
+              </div>
+              <div class="run-note" style="margin-top: 8px; line-height: 1.4;">
+                <span style="color: var(--cyan);">TradeGuard monitors simulated execution slippage and pauses the remaining order when the predefined slippage threshold is exceeded.</span>
+              </div>
             </div>
-            <div class="status idle" id="pfStatus">IDLE</div>
+
+            <!-- EXECUTION RESULTS -->
+            <div>
+              <div class="calc-results" style="height: 100%; justify-content: flex-start; padding: 18px; overflow-y: auto; max-height: 520px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <div class="caption" style="margin-bottom: 0;">Execution Verification</div>
+                  <div class="status idle" id="pfStatus">IDLE</div>
+                </div>
+                
+                <div id="pfResultCard" style="display: none; flex-direction: column; gap: 12px;">
+                  <div id="pfResultAlert" style="padding: 10px 14px; border-radius: 4px; font-weight: 600; font-size: 13px;"></div>
+                  <div style="font-size: 12px; color: var(--text-dim);" id="pfResultReason"></div>
+                  <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;"><strong style="color:var(--text);">Action:</strong> <span id="pfResultAction"></span></div>
+
+                  <div class="calc-breakdown" style="border-top: none; padding-top: 0;">
+                    <div class="row"><span class="k">Broker</span><span class="v mono" id="pfResBroker">—</span></div>
+                    <div class="row"><span class="k">Requested Qty</span><span class="v mono" id="pfResReqQty">—</span></div>
+                    <div class="row"><span class="k">Executed Qty</span><span class="v mono" id="pfResExecQty">—</span></div>
+                    <div class="row"><span class="k">Remaining Qty</span><span class="v mono" id="pfResPausedQty">—</span></div>
+                    <div class="row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);"><span class="k">Target Price</span><span class="v mono" id="pfResTarget">—</span></div>
+                    <div class="row"><span class="k">Avg Execution Price</span><span class="v mono" id="pfResAvg">—</span></div>
+                    <div class="row"><span class="k">Actual Slippage</span><span class="v mono" id="pfResSlippage" style="font-weight: 700; color: var(--cyan);">—</span></div>
+                    <div class="row"><span class="k">Max Allowed Slippage</span><span class="v mono" id="pfResMaxSlippage">—</span></div>
+                  </div>
+                  
+                  <div style="margin-top: 16px;">
+                    <div class="caption" style="margin-bottom: 8px;">Fill Audit</div>
+                    <div id="pfFillAuditList" style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; border: 1px solid var(--line); padding: 10px; border-radius: 4px; background: var(--panel);">
+                    </div>
+                  </div>
+                </div>
+                
+                <div id="pfIdleState" style="text-align: center; padding: 40px 0; color: var(--text-faint);">
+                  Click "Execute Order" to simulate execution
+                </div>
+              </div>
+            </div>
           </div>
-
-          <div class="pf-chart"><canvas id="pfCanvas"></canvas></div>
-
-          <div class="legend">
-            <span><span class="dot" style="background: var(--cyan)"></span> running avg fill price</span>
-            <span><span class="dot" style="background: var(--red)"></span> tolerance ceiling</span>
-            <span><span class="dot" style="background: var(--text-faint)"></span> reference price</span>
-          </div>
-
-          <div class="pf-stats">
-            <div class="stat"><div class="label">Filled qty</div><div class="value mono" id="pfFilled">0 / 2,000</div></div>
-            <div class="stat"><div class="label">Remaining</div><div class="value mono" id="pfRemaining">2,000</div></div>
-            <div class="stat"><div class="label">Running avg</div><div class="value mono" id="pfAvg">—</div></div>
-            <div class="stat"><div class="label">Chunks</div><div class="value mono" id="pfChunks">0</div></div>
-            <div class="stat"><div class="label">Result</div><div class="value mono" id="pfResult">—</div></div>
-          </div>
-
-          <div class="actions" style="margin-top: 14px;">
-            <button class="btn" id="pfRunBtn">▶ Simulate order</button>
-            <button class="btn secondary" id="pfResetBtn">↺ Reset</button>
-            <span class="run-note" id="pfNote">Random outcome each run</span>
-          </div>
-
-          <div class="outcome-history">
-            <span style="color: var(--text-faint);">Outcome history:</span>
-            <span id="historyList">—</span>
-            <span class="history-stats" id="historyStats"></span>
+          
+          <div style="margin-top: 20px;">
+            <div class="section-head" style="margin-bottom: 12px;">
+              <h2 style="font-size: 14px;">Execution History</h2>
+            </div>
+            <div class="table-wrap" style="max-height: 250px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th><th>Broker</th><th>Symbol</th><th>Side</th>
+                    <th class="num">Req Qty</th><th class="num">Exec Qty</th>
+                    <th class="num">Avg Price</th><th class="num">Slippage</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                  <tr><td colspan="9" style="text-align: center; color: var(--text-faint);">No recent simulated orders</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div class="volatility-dashboard">
@@ -2251,233 +2318,153 @@ const Verification = (() => {
 
 /* ----- 5d. PARTIAL-FILL MONITOR ----- */
 const PartialFill = (() => {
-  const canvas = $('#pfCanvas');
-  const ctx = canvas.getContext('2d');
-  const REF_DEFAULT = 2940;
-  let timer = null;
-  let simulating = false;
-
   const refs = {
+    broker: $('#pfBroker'),
     symbol: $('#pfSymbol'),
+    side: $('#pfSide'),
+    orderType: $('#pfOrderType'),
     qty: $('#pfQty'),
-    tolPct: $('#pfTolPct'),
-    tolRupee: $('#pfTolRupee'),
     refPrice: $('#pfRefPrice'),
+    tolPct: $('#pfTolPct'),
+    runBtn: $('#pfRunBtn')
   };
 
-  const getRef = () => { const v = parseFloat(refs.refPrice.value); return v > 0 ? v : REF_DEFAULT; };
+  const getRef = () => { const v = parseFloat(refs.refPrice.value); return v > 0 ? v : 0; };
   const getSymbol = () => (refs.symbol.value || '').trim().toUpperCase() || 'RELIANCE';
-  const getTol = () => { const v = parseFloat(refs.tolPct.value); return v > 0 ? v : 0.35; };
-  const getCeiling = () => getRef() * (1 + getTol() / 100);
-  const getQty = () => {
-    const v = parseInt(refs.qty.value, 10);
-    const q = v >= 10 ? Math.round(v / 10) * 10 : 2000;
-    refs.qty.value = q;
-    return q;
-  };
-
-  const syncTolFromPct = () => { refs.tolRupee.value = (getTol() / 100 * getRef()).toFixed(2); };
-  const syncTolFromRupee = () => {
-    const r = parseFloat(refs.tolRupee.value);
-    if (r > 0) refs.tolPct.value = (r / getRef() * 100).toFixed(2);
-  };
-
-  const resize = () => {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    if (rect.width === 0) return;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = 150 * dpr;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = '150px';
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-  };
-
-  const drawStatic = () => {
-    const w = canvas.width / (window.devicePixelRatio || 1);
-    const h = 150;
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#141A21';
-    ctx.fillRect(0, 0, w, h);
-
-    // Tolerance line at y=20
-    ctx.beginPath();
-    ctx.moveTo(0, 20); ctx.lineTo(w, 20);
-    ctx.strokeStyle = '#E55A5A';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Reference line at y=95
-    ctx.beginPath();
-    ctx.moveTo(0, 95); ctx.lineTo(w, 95);
-    ctx.strokeStyle = '#4C5560';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([2, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Labels
-    ctx.fillStyle = '#E55A5A';
-    ctx.font = '9px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(`tolerance ${getTol().toFixed(2)}%`, w - 6, 14);
-    ctx.fillStyle = '#4C5560';
-    ctx.fillText(`ref ${fmtPrice(getRef())}`, w - 6, 89);
-  };
-
-  const drawLine = (points) => {
-    drawStatic();
-    if (points.length < 2) return;
-    ctx.beginPath();
-    ctx.moveTo(points[0][0], points[0][1]);
-    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
-    ctx.strokeStyle = '#3DD9C4';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-  };
 
   const setStatus = (text, className) => {
     $('#pfStatus').textContent = text;
     $('#pfStatus').className = 'status ' + className;
   };
 
-  const reset = () => {
-    clearTimeout(timer);
-    timer = null;
-    simulating = false;
-    Object.values(refs).forEach(el => el.disabled = false);
-    setStatus('IDLE', 'idle');
-    const qty = getQty();
-    $('#pfFilled').textContent = `0 / ${qty.toLocaleString('en-IN')}`;
-    $('#pfRemaining').textContent = qty.toLocaleString('en-IN');
-    $('#pfAvg').textContent = '—';
-    $('#pfChunks').textContent = '0';
-    $('#pfResult').textContent = '—';
-    $('#pfResult').className = 'value mono';
-    $('#pfNote').textContent = 'Random outcome each run';
-    resize();
-    drawStatic();
+  const updateHistory = (outcomeText, success) => {
+    const h = Store.get('outcomeHistory') || [];
+    h.unshift(`<span class="history-item ${success ? 'success' : 'fail'}" style="margin-right: 8px;">${success ? '✅' : '⚠️'} ${outcomeText}</span>`);
+    if (h.length > 5) h.pop();
+    Store.set('outcomeHistory', h);
+    $('#historyList').innerHTML = h.join('');
   };
 
-  const updateHistory = (outcome) => {
-    const h = Store.get('outcomeHistory');
-    h.push(outcome);
-    if (h.length > 20) h.shift();
+  const simulate = async () => {
+    if (refs.runBtn.disabled) return;
+    refs.runBtn.disabled = true;
+    refs.runBtn.textContent = 'Simulating...';
 
-    if (outcome === 'success') Store.set('successCount', Store.get('successCount') + 1);
-    else Store.set('failCount', Store.get('failCount') + 1);
-
-    $('#historyList').innerHTML = h.map(o =>
-      `<span class="history-item ${o}">${o === 'success' ? '✅' : '❌'}</span>`
-    ).join('');
-
-    const total = Store.get('successCount') + Store.get('failCount');
-    if (total > 0) {
-      const rate = Math.round(Store.get('successCount') / total * 100);
-      $('#historyStats').textContent = `✅ ${Store.get('successCount')} | ❌ ${Store.get('failCount')} | ${rate}% success`;
-    }
-  };
-
-  const simulate = () => {
-    if (simulating) return;
-    reset();
-
-    const slippageProb = parseFloat($('#slippageProbValue').textContent) || 40;
-    const tolerance = getTol();
-    const refPrice = getRef();
-    const symbol = getSymbol();
-
-    let successChance = 0.5 + (tolerance - 0.35) * 0.5 - ((slippageProb - 40) / 100) * 0.2;
-    successChance = Math.max(0.25, Math.min(0.75, successChance));
-
-    const willSucceed = Math.random() < successChance;
-    const breachChunk = willSucceed ? null : randInt(4, 7);
-
-    simulating = true;
-    Object.values(refs).forEach(el => el.disabled = true);
-    setStatus('FILLING...', 'running');
-    $('#pfNote').textContent = willSucceed
-      ? '🎯 Target: Complete order'
-      : `⚠️ Target: Auto-cancel by chunk ${breachChunk}`;
-
-    const totalQty = getQty();
-    const ceiling = getCeiling();
-    const nChunks = 10;
-    const chunkSize = totalQty / nChunks;
-    let filledQty = 0, cumValue = 0, chunk = 0;
-    const points = [[0, 95]];
-    const w = canvas.width / (window.devicePixelRatio || 1);
-
-    const next = () => {
-      if (!simulating) return;
-      chunk++;
-
-      let drift;
-      if (willSucceed) {
-        drift = (chunk / nChunks) * tolerance * 0.6 + (Math.random() - 0.4) * 0.08;
-      } else if (chunk < breachChunk) {
-        drift = (chunk / breachChunk) * tolerance * 0.85 + (Math.random() - 0.4) * 0.06;
-      } else {
-        drift = tolerance * (1.4 + Math.random() * 0.6);
-      }
-      drift += (slippageProb / 100) * 0.05;
-
-      const chunkPrice = refPrice * (1 + drift / 100);
-      filledQty += chunkSize;
-      cumValue += chunkPrice * chunkSize;
-      const runningAvg = cumValue / filledQty;
-
-      const range = Math.max(ceiling - refPrice, 0.01);
-      const yPos = 95 - ((runningAvg - refPrice) / range) * 75;
-      points.push([(chunk / nChunks) * w, Math.max(5, Math.min(145, yPos))]);
-      drawLine(points);
-
-      const remaining = Math.max(0, totalQty - Math.round(filledQty));
-      $('#pfFilled').textContent = `${Math.round(filledQty).toLocaleString('en-IN')} / ${totalQty.toLocaleString('en-IN')}`;
-      $('#pfRemaining').textContent = remaining.toLocaleString('en-IN');
-      $('#pfAvg').textContent = fmtPrice(runningAvg);
-      $('#pfChunks').textContent = chunk;
-
-      const breach = runningAvg >= ceiling || (!willSucceed && chunk >= breachChunk);
-      if (breach) {
-        setStatus('⛔ AUTO-CANCELLED', 'cancelled');
-        $('#pfResult').textContent = '⚠️ Tolerance breached!';
-        $('#pfResult').className = 'value mono down';
-        $('#pfNote').textContent = `❌ Cancelled at chunk ${chunk}/10 — avg ${fmtPrice(runningAvg)} > ceiling ${fmtPrice(ceiling)}`;
-        updateHistory('fail');
-        UI.notify('alert', '⛔ Auto-cancel triggered', `${symbol} breached ${tolerance.toFixed(2)}% at chunk ${chunk}/10`);
-        simulating = false;
-        Object.values(refs).forEach(el => el.disabled = false);
-        return;
-      }
-
-      if (chunk < nChunks) {
-        timer = setTimeout(next, 450);
-      } else {
-        setStatus('✅ FILLED', 'complete');
-        $('#pfResult').textContent = '✓ Order completed within tolerance';
-        $('#pfResult').className = 'value mono up';
-        $('#pfNote').textContent = `✅ Filled at avg ${fmtPrice(runningAvg)} — within tolerance`;
-        updateHistory('success');
-        UI.notify('info', '✅ Order filled', `${symbol} completed within ${tolerance.toFixed(2)}%`);
-        simulating = false;
-        Object.values(refs).forEach(el => el.disabled = false);
-      }
+    const payload = {
+      broker: refs.broker.value,
+      symbol: refs.symbol.value,
+      side: refs.side.value,
+      order_type: refs.orderType.value,
+      qty: parseFloat(refs.qty.value) || 0,
+      target_price: parseFloat(refs.refPrice.value) || 0,
+      max_slippage: parseFloat(refs.tolPct.value) || 0
     };
 
-    timer = setTimeout(next, 400);
+    try {
+      const res = await fetch('/api/simulate-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      
+      $('#pfIdleState').style.display = 'none';
+      $('#pfResultCard').style.display = 'flex';
+
+      const order = data.order;
+      const ver = data.verification;
+      const fills = data.fills || [];
+
+      const reqQty = order.requested_quantity.toLocaleString('en-IN');
+      const execQty = ver.executed_quantity.toLocaleString('en-IN');
+      const pausedQty = ver.remaining_quantity.toLocaleString('en-IN');
+      
+      $('#pfResBroker').textContent = order.broker;
+      $('#pfResReqQty').textContent = reqQty;
+      $('#pfResExecQty').textContent = execQty;
+      $('#pfResPausedQty').textContent = pausedQty;
+      $('#pfResTarget').textContent = '₹' + order.target_price.toFixed(2);
+      $('#pfResAvg').textContent = '₹' + ver.average_execution_price.toFixed(2);
+      
+      const slipStr = ver.actual_slippage.toFixed(3) + '%';
+      $('#pfResSlippage').textContent = slipStr;
+      $('#pfResMaxSlippage').textContent = ver.max_allowed_slippage.toFixed(3) + '%';
+      
+      $('#pfResultReason').textContent = ver.verification_status === 'SLIPPAGE LIMIT EXCEEDED' 
+        ? `Reason: Actual slippage of ${slipStr} exceeded the allowed limit of ${ver.max_allowed_slippage}%` 
+        : 'Reason: Execution within slippage tolerance.';
+      
+      $('#pfResultAction').textContent = ver.action_taken;
+
+      if (ver.verification_status === 'SLIPPAGE LIMIT EXCEEDED' || order.status === 'PAUSED') {
+        setStatus('SLIPPAGE LIMIT EXCEEDED', 'cancelled');
+        $('#pfResultAlert').textContent = `⚠️ SLIPPAGE LIMIT EXCEEDED!`;
+        $('#pfResultAlert').style.backgroundColor = 'rgba(229, 90, 90, 0.15)';
+        $('#pfResultAlert').style.color = 'var(--red)';
+        updateHistory(`${order.symbol} ${order.side} Paused`, false);
+      } else {
+        setStatus('EXECUTED', 'complete');
+        $('#pfResultAlert').textContent = `✅ Order Executed Successfully!`;
+        $('#pfResultAlert').style.backgroundColor = 'rgba(61, 217, 196, 0.15)';
+        $('#pfResultAlert').style.color = 'var(--cyan)';
+        updateHistory(`${order.symbol} ${order.side} Executed`, true);
+      }
+      
+      // Render Fill Audit
+      const fillAuditHtml = fills.map((f, i) => `
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+          <span><strong>Fill ${i+1}</strong></span>
+          <span class="mono" style="color:var(--text-dim);">${f.timestamp.split('T')[1].substring(0,8)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding-bottom:6px;">
+          <span>Qty: <span class="mono">${f.fill_quantity.toLocaleString('en-IN')}</span></span>
+          <span>Price: <span class="mono">₹${f.fill_price.toFixed(2)}</span></span>
+        </div>
+      `).join('');
+      $('#pfFillAuditList').innerHTML = fillAuditHtml || '<div>No fills generated.</div>';
+      
+      fetchHistory();
+      
+    } catch (e) {
+      console.error('Simulation failed', e);
+      setStatus('ERROR', 'cancelled');
+    } finally {
+      refs.runBtn.disabled = false;
+      refs.runBtn.textContent = '▶ Execute Order';
+    }
+  };
+  
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch('/api/execution-history');
+      const data = await res.json();
+      const hist = data.history || [];
+      if (hist.length > 0) {
+        $('#historyTableBody').innerHTML = hist.map(h => {
+          const t = new Date(h.created_at).toLocaleTimeString('en-IN');
+          const statusCls = h.status === 'PAUSED' ? 'flag-warn' : 'flag-ok';
+          return `
+            <tr>
+              <td class="mono" style="font-size:11px; color:var(--text-dim);">${t}</td>
+              <td>${h.broker}</td>
+              <td class="mono">${h.symbol}</td>
+              <td>${h.side}</td>
+              <td class="num mono">${h.requested_quantity ? h.requested_quantity.toLocaleString('en-IN') : '—'}</td>
+              <td class="num mono">${h.executed_quantity ? h.executed_quantity.toLocaleString('en-IN') : '—'}</td>
+              <td class="num mono">${h.average_execution_price ? '₹'+h.average_execution_price.toFixed(2) : '—'}</td>
+              <td class="num mono">${h.actual_slippage !== undefined ? h.actual_slippage.toFixed(3)+'%' : '—'}</td>
+              <td><span class="${statusCls}" style="font-weight:600; font-size:10px;">${h.status}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+    } catch(e) {
+      console.error('Failed to fetch history', e);
+    }
   };
 
   return {
     init() {
-      // Sync tolerance inputs
-      refs.tolPct.addEventListener('input', () => { syncTolFromPct(); redraw(); });
-      refs.tolRupee.addEventListener('input', () => { syncTolFromRupee(); redraw(); });
-      refs.refPrice.addEventListener('input', () => { syncTolFromPct(); redraw(); });
-      
       const fetchSymbolPrice = async () => {
         const sym = getSymbol();
         if (!sym) return;
@@ -2486,8 +2473,6 @@ const PartialFill = (() => {
           const json = await res.json();
           if (json.data && json.data[sym] && json.data[sym].price) {
             refs.refPrice.value = json.data[sym].price.toFixed(2);
-            syncTolFromPct();
-            redraw();
           }
         } catch (e) {
           console.error('Failed to fetch symbol price', e);
@@ -2497,39 +2482,15 @@ const PartialFill = (() => {
       refs.symbol.addEventListener('input', () => { refs.symbol.value = refs.symbol.value.toUpperCase(); });
       refs.symbol.addEventListener('blur', fetchSymbolPrice);
       fetchSymbolPrice(); // Fetch initial price for default symbol
-
+      fetchHistory(); // Fetch initial history
       // Buttons
-      $('#pfRunBtn').addEventListener('click', simulate);
-      $('#pfResetBtn').addEventListener('click', () => {
-        Store.set('outcomeHistory', []);
-        Store.set('successCount', 0);
-        Store.set('failCount', 0);
-        $('#historyList').textContent = '—';
-        $('#historyStats').textContent = '';
-        reset();
-      });
-
-      // Debounced resize
-      window.addEventListener('resize', debounce(() => {
-        if (Store.get('currentView') === 'partial-fill' && !simulating) {
-          resize(); drawStatic();
-        }
-      }));
+      refs.runBtn.addEventListener('click', simulate);
+      
+      Store.set('outcomeHistory', []);
     },
 
-    // Called by router when view becomes active
-    onEnter() {
-      requestAnimationFrame(() => { resize(); drawStatic(); });
-    },
-
-    reset
+    onEnter() {}
   };
-
-  function redraw() {
-    if (!simulating && Store.get('currentView') === 'partial-fill') {
-      resize(); drawStatic();
-    }
-  }
 })();
 
 /* ----- 5e. VOLATILITY ----- */
