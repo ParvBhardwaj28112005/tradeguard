@@ -1,3031 +1,1073 @@
-<!DOCTYPE html>
+def build():
+    html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeGuard — Execution Integrity Layer</title>
-<style>
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
-:root {
-  --bg: #0A0E12;
-  --panel: #10151B;
-  --panel-2: #141A21;
-  --panel-3: #1A2129;
-  --line: #232B33;
-  --line-soft: #1B222A;
-  --text: #DCE3E8;
-  --text-dim: #7C8894;
-  --text-faint: #4C5560;
-  --cyan: #3DD9C4;
-  --cyan-hover: #57E6D3;
-  --cyan-dim: rgba(61, 217, 196, 0.08);
-  --amber: #E8A33D;
-  --red: #E55A5A;
-  --green: #6FCF7A;
-  --font-mono: 'SF Mono', 'JetBrains Mono', Consolas, monospace;
-  --sidebar-w: 236px;
-  --topbar-h: 58px;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeGuard | Execution Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0B0E14;
+            --bg-panel: #131722;
+            --bg-panel-hover: #1C212D;
+            --border: #2A2E39;
+            --text-main: #D1D4DC;
+            --text-muted: #787B86;
+            --accent-cyan: #00D2FF;
+            --accent-cyan-dim: rgba(0, 210, 255, 0.1);
+            --color-green: #00E676;
+            --color-green-dim: rgba(0, 230, 118, 0.15);
+            --color-amber: #FFAB00;
+            --color-amber-dim: rgba(255, 171, 0, 0.15);
+            --color-red: #FF3D00;
+            --color-red-dim: rgba(255, 61, 0, 0.15);
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --sidebar-width: 240px;
+            --topbar-height: 60px;
+        }
 
-/* ============================================================
-   RESET
-   ============================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-}
-button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
-button { cursor: pointer; border: none; background: none; }
-ul { list-style: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
-/* ============================================================
-   LAYOUT SHELL
-   ============================================================ */
-.app-shell {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
+        /* TYPOGRAPHY */
+        .mono { font-family: var(--font-mono); }
+        .text-cyan { color: var(--accent-cyan); }
+        .text-green { color: var(--color-green); }
+        .text-amber { color: var(--color-amber); }
+        .text-red { color: var(--color-red); }
+        .text-muted { color: var(--text-muted); }
+        .fw-500 { font-weight: 500; }
+        .fw-600 { font-weight: 600; }
 
-/* ============================================================
-   SIDEBAR
-   ============================================================ */
-.sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
-  background: var(--panel);
-  border-right: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  z-index: 60;
-}
-.sidebar-brand {
-  padding: 18px 20px 16px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  flex-shrink: 0;
-}
-.brand-mark {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 12px rgba(61, 217, 196, 0.55);
-  flex-shrink: 0;
-}
-.brand-text .name {
-  font-size: 14.5px; font-weight: 600; letter-spacing: 0.2px;
-}
-.brand-text .tag {
-  display: block;
-  font-size: 9.5px; color: var(--text-faint);
-  text-transform: uppercase; letter-spacing: 0.6px;
-  margin-top: 1px;
-}
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 8px;
-}
-.nav-group {
-  font-size: 10px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  font-weight: 600;
-  padding: 14px 12px 6px;
-}
-.nav-group:first-child { padding-top: 4px; }
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  margin-bottom: 1px;
-  border-radius: 4px;
-  width: 100%;
-  text-align: left;
-  color: var(--text-dim);
-  font-size: 13px;
-  transition: background 0.12s, color 0.12s;
-}
-.nav-item:hover {
-  background: var(--panel-2);
-  color: var(--text);
-}
-.nav-item.active {
-  background: var(--cyan-dim);
-  color: var(--cyan);
-}
-.nav-item .icon {
-  width: 16px;
-  text-align: center;
-  font-size: 13px;
-  opacity: 0.9;
-  flex-shrink: 0;
-}
-.nav-item .label { flex: 1; }
-.nav-item .pill {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  padding: 1px 6px;
-  border-radius: 8px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  background: var(--panel-2);
-  color: var(--text-faint);
-}
-.nav-item .pill.live {
-  background: rgba(111, 207, 122, 0.15);
-  color: var(--green);
-}
-.nav-item .pill.warn {
-  background: rgba(232, 163, 61, 0.15);
-  color: var(--amber);
-}
-.sidebar-footer {
-  padding: 12px 18px 14px;
-  border-top: 1px solid var(--line);
-  font-size: 10.5px;
-  color: var(--text-faint);
-  line-height: 1.6;
-  font-family: var(--font-mono);
-  flex-shrink: 0;
-}
-.sidebar-footer .row {
-  display: flex; justify-content: space-between;
-}
-.dot-live {
-  display: inline-block;
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green);
-  margin-right: 5px;
-  box-shadow: 0 0 6px var(--green);
-}
+        /* LAYOUT */
+        #sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+        #main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        #topbar {
+            height: var(--topbar-height);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: var(--bg-base);
+        }
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            position: relative;
+        }
 
-/* ============================================================
-   MAIN AREA
-   ============================================================ */
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.topbar {
-  height: var(--topbar-h);
-  flex-shrink: 0;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  gap: 14px;
-}
-.hamburger {
-  display: none;
-  width: 32px; height: 32px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  color: var(--text-dim);
-  font-size: 15px;
-  align-items: center;
-  justify-content: center;
-}
-.topbar-title { flex: 1; min-width: 0; }
-.topbar-title .crumb {
-  font-size: 10.5px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  display: block;
-}
-.topbar-title .page-name {
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.clock {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--text-dim);
-  padding-right: 12px;
-  border-right: 1px solid var(--line);
-  margin-right: 2px;
-}
-.icon-btn {
-  width: 34px; height: 34px;
-  border-radius: 4px;
-  border: 1px solid var(--line);
-  background: var(--panel-2);
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  position: relative;
-  transition: color 0.12s, border-color 0.12s;
-}
-.icon-btn:hover {
-  color: var(--text);
-  border-color: var(--text-faint);
-}
-.icon-btn .badge-count {
-  position: absolute;
-  top: -5px; right: -5px;
-  background: var(--red);
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 16px; height: 16px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-}
+        /* SIDEBAR */
+        .brand {
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+        .brand-dot {
+            width: 8px; height: 8px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 8px var(--accent-cyan);
+        }
+        .nav-group {
+            margin-top: 16px;
+            padding: 0 12px;
+        }
+        .nav-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding: 8px 12px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 2px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .nav-item:hover { background: var(--bg-panel-hover); }
+        .nav-item.active {
+            background: var(--accent-cyan-dim);
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
 
-/* ============================================================
-   VIEW CONTAINER
-   ============================================================ */
-.view-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 26px 28px 60px;
-  position: relative;
-}
-.view {
-  display: none;
-  animation: viewIn 0.18s ease;
-}
-.view.active { display: block; }
-@keyframes viewIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+        /* TOPBAR */
+        .page-context { font-size: 18px; font-weight: 500; }
+        .topbar-status {
+            display: flex;
+            gap: 24px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-panel);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .dot.green { background: var(--color-green); box-shadow: 0 0 6px var(--color-green); }
 
-/* ============================================================
-   SECTION + SHARED COMPONENTS
-   ============================================================ */
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 16px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.section-head h2 {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.1px;
-}
-.section-head .sub {
-  color: var(--text-faint);
-  font-size: 12.5px;
-}
-.actions { display: flex; gap: 8px; }
+        /* VIEWS */
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  margin-bottom: 1px;
-}
-.stat {
-  background: var(--panel);
-  padding: 14px 18px;
-}
-.stat .label {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.stat .value {
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 500;
-  margin-top: 4px;
-}
-.stat .delta {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  margin-top: 2px;
-}
-.up { color: var(--green); }
-.down { color: var(--red); }
-.amber { color: var(--amber); }
-.cyan { color: var(--cyan); }
-.mono { font-family: var(--font-mono); }
+        /* COMPONENTS */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+        
+        .section-title { font-size: 20px; font-weight: 500; margin-bottom: 24px; }
+        .sub-title { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; display: block; }
+        
+        /* FORMS */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control {
+            width: 100%;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-cyan); }
+        select.form-control { appearance: none; font-family: var(--font-sans); }
+        
+        .btn {
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { background: var(--bg-panel-hover); border-color: var(--text-muted); }
 
-/* Tables */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--panel);
-  border: 1px solid var(--line);
-}
-.data-table th {
-  text-align: left;
-  font-size: 11px;
-  color: var(--text-faint);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  background: var(--panel);
-}
-.data-table td {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  font-size: 13px;
-}
-.data-table tr:last-child td { border-bottom: none; }
-.data-table td.num,
-.data-table th.num { text-align: right; }
-.table-wrap {
-  max-height: 500px;
-  overflow-y: auto;
-  background: var(--panel);
-  border: 1px solid var(--line);
-}
+        /* KPI CARDS */
+        .kpi-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-value { font-size: 28px; font-weight: 600; margin-top: 8px; font-family: var(--font-mono); }
 
-/* Badges */
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  border: 1px solid var(--line);
-  color: var(--text-dim);
-}
-.badge.zerodha { color: #E8804D; border-color: #3A2A1F; }
-.badge.groww { color: #7ED957; border-color: #233A1F; }
-.badge.coindcx { color: #3DD9C4; border-color: #1F3A38; }
+        /* TABLES */
+        .table-wrap {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--bg-base);
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--bg-panel-hover); }
 
-/* Buttons */
-.btn {
-  padding: 8px 16px;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  border-radius: 3px;
-  background: var(--cyan);
-  color: #06201C;
-  transition: background 0.12s;
-}
-.btn:hover { background: var(--cyan-hover); }
-.btn.secondary {
-  background: transparent;
-  color: var(--text-dim);
-  border: 1px solid var(--line);
-}
-.btn.secondary:hover {
-  color: var(--text);
-  border-color: var(--text-faint);
-}
-.btn.danger { background: var(--red); color: white; }
-.btn.tiny { padding: 5px 10px; font-size: 11px; }
+        /* BADGES */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge.green { background: var(--color-green-dim); color: var(--color-green); }
+        .badge.amber { background: var(--color-amber-dim); color: var(--color-amber); }
+        .badge.red { background: var(--color-red-dim); color: var(--color-red); }
+        .badge.cyan { background: var(--accent-cyan-dim); color: var(--accent-cyan); }
+        .badge.gray { background: var(--border); color: var(--text-muted); }
 
-/* Panels */
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 22px 26px;
-  position: relative;
-}
-.panel-accent::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--cyan), transparent 70%);
-}
-.run-note {
-  font-size: 11.5px;
-  color: var(--text-faint);
-  margin-left: 4px;
-}
+        /* PROGRESS METERS */
+        .meter-container { margin: 20px 0; }
+        .meter-track {
+            height: 8px;
+            background: var(--bg-base);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+        .meter-fill {
+            height: 100%;
+            background: var(--accent-cyan);
+            transition: width 0.5s ease;
+        }
+        .meter-limit {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 2px;
+            background: var(--color-red);
+            z-index: 2;
+        }
+        .meter-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
 
-/* ============================================================
-   DASHBOARD
-   ============================================================ */
-.asset-name { font-weight: 500; }
-.asset-sub {
-  color: var(--text-faint);
-  font-size: 11.5px;
-}
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 24px; border-top: 1px solid var(--border); display: flex; gap: 16px; }
 
-/* ============================================================
-   VERIFICATION
-   ============================================================ */
-.hero-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 30px;
-}
-.score-block {
-  border-right: 1px solid var(--line);
-  padding-right: 30px;
-}
-.score-label {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.score-value {
-  font-family: var(--font-mono);
-  font-size: 44px;
-  font-weight: 600;
-  color: var(--cyan);
-  margin: 4px 0 2px;
-  line-height: 1;
-}
-.score-note {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 16px;
-}
-.score-bars { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-.score-bar-row { display: flex; align-items: center; gap: 10px; }
-.score-bar-row .name { width: 70px; font-size: 11.5px; color: var(--text-dim); }
-.score-bar-track {
-  flex: 1;
-  height: 5px;
-  background: var(--panel-2);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.score-bar-fill {
-  height: 100%;
-  background: var(--cyan);
-  border-radius: 3px;
-}
-.score-bar-row .n {
-  width: 55px;
-  text-align: right;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-dim);
-}
-.feed-title {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
-}
-.feed {
-  max-height: 260px;
-  overflow-y: auto;
-}
-.feed-row {
-  display: grid;
-  grid-template-columns: 70px 1fr 70px 70px 60px;
-  gap: 10px;
-  align-items: center;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-.feed-row:last-child { border-bottom: none; }
-.feed-row .sym { font-family: -apple-system, sans-serif; font-size: 12.5px; }
-.feed-row .dev { text-align: right; }
-.flag-ok { color: var(--green); }
-.flag-warn { color: var(--amber); }
-.flag-bad { color: var(--red); }
+        /* DATA BLOCKS */
+        .data-row {
+            display: flex; justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+        .data-row:last-child { border-bottom: none; }
+        .data-label { color: var(--text-muted); font-size: 13px; }
+        .data-value { font-family: var(--font-mono); font-size: 14px; font-weight: 500; }
 
-/* ============================================================
-   PARTIAL-FILL
-   ============================================================ */
-.pf-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.pf-order-desc {
-  font-size: 13px;
-  color: var(--text-dim);
-  line-height: 2.4;
-}
-.pf-order-desc .mono { color: var(--text); }
-.input {
-  background: var(--panel-2);
-  color: var(--cyan);
-  border: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  padding: 3px 8px;
-  border-radius: 2px;
-  transition: border-color 0.15s;
-}
-.input:focus { outline: none; border-color: var(--cyan); }
-.input:disabled { opacity: 0.5; }
-.input.qty { width: 78px; }
-.input.symbol { width: 120px; text-transform: uppercase; letter-spacing: 0.5px; }
-.input.ref { width: 110px; }
-.tol-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--panel-2);
-  padding: 4px 10px 4px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--line);
-  vertical-align: middle;
-}
-.tol-group .sep { color: var(--text-faint); font-size: 12px; }
-.tol-group .label {
-  font-size: 11px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-}
-.tol-input {
-  background: transparent;
-  color: var(--cyan);
-  border: none;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  width: 60px;
-  padding: 2px 0;
-  text-align: center;
-  outline: none;
-}
-.tol-input.rupee { width: 65px; }
-.tol-input:disabled { opacity: 0.5; }
+        /* HERO CARD */
+        .hero-card {
+            background: linear-gradient(145deg, var(--bg-panel), #0B0E14);
+            border: 1px solid var(--accent-cyan-dim);
+            border-left: 4px solid var(--accent-cyan);
+        }
 
-.status {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  padding: 4px 10px;
-  border: 1px solid var(--line);
-  letter-spacing: 0.3px;
-  border-radius: 3px;
-}
-.status.running {
-  color: var(--amber);
-  border-color: #3A2E1A;
-  animation: statusFlash 0.8s infinite;
-}
-.status.cancelled { color: var(--red); border-color: #3A1F1F; }
-.status.complete { color: var(--green); border-color: #1F3A25; }
-.status.idle { color: var(--text-faint); }
-@keyframes statusFlash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-.pf-chart {
-  height: 150px;
-  background: var(--panel-2);
-  border-radius: 4px;
-  margin-bottom: 12px;
-  position: relative;
-  overflow: hidden;
-}
-#pfCanvas { width: 100%; height: 100%; display: block; }
-
-.legend {
-  display: flex;
-  gap: 18px;
-  font-size: 11.5px;
-  color: var(--text-faint);
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-.legend span { display: inline-flex; align-items: center; gap: 6px; }
-.dot {
-  width: 8px; height: 8px;
-  border-radius: 1px;
-  display: inline-block;
-}
-
-.pf-stats {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-.pf-stats .stat { padding: 10px 14px; }
-.pf-stats .stat .label { font-size: 10.5px; }
-.pf-stats .stat .value { font-size: 16px; }
-
-.outcome-history {
-  margin-top: 10px;
-  padding: 10px 14px;
-  background: var(--panel-2);
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.outcome-history .history-item {
-  display: inline-block;
-  margin-right: 4px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-}
-.outcome-history .history-item.success { color: var(--green); }
-.outcome-history .history-item.fail { color: var(--red); }
-.outcome-history .history-stats {
-  float: right;
-  font-size: 11px;
-  color: var(--text-faint);
-}
-
-/* Volatility */
-.volatility-dashboard {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  margin-top: 16px;
-}
-.volatility-panel {
-  background: var(--panel);
-  padding: 16px 18px;
-}
-.volatility-panel > .label {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.volatility-gauge { display: flex; align-items: center; gap: 14px; }
-.volatility-ring {
-  width: 70px; height: 70px;
-  border-radius: 50%;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.volatility-ring svg { transform: rotate(-90deg); }
-.volatility-ring .pct {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 600;
-}
-.volatility-details { flex: 1; }
-.metric-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 3px 0;
-  font-size: 12.5px;
-  border-bottom: 1px solid rgba(35, 43, 51, 0.4);
-}
-.metric-row:last-child { border-bottom: none; }
-.metric-row .k { color: var(--text-dim); font-size: 12px; }
-.metric-row .v { font-family: var(--font-mono); font-weight: 500; }
-.slippage-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--panel-2);
-  border-radius: 4px;
-  margin-top: 8px;
-}
-.slippage-bar-track {
-  flex: 1;
-  height: 6px;
-  background: var(--bg);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.slippage-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.5s ease;
-}
-.slippage-bar-label {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 600;
-  min-width: 50px;
-  text-align: right;
-}
-.bar-mini-label {
-  font-size: 11px;
-  color: var(--text-faint);
-}
-
-/* Pre-trade tips */
-.pretrade-tips {
-  margin-top: 12px;
-  padding: 12px 16px;
-  background: rgba(232, 163, 61, 0.06);
-  border-left: 3px solid var(--amber);
-  border-radius: 3px;
-  font-size: 12.5px;
-}
-.pretrade-tips .title {
-  font-size: 11px;
-  color: var(--amber);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.pretrade-tips li {
-  padding: 3px 0;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pretrade-tips li::before {
-  content: '▸';
-  color: var(--amber);
-  font-size: 10px;
-  flex-shrink: 0;
-}
-
-/* ============================================================
-   SCORECARD
-   ============================================================ */
-.broker-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.broker-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 18px 20px;
-  position: relative;
-  overflow: hidden;
-}
-.broker-card .rank {
-  position: absolute;
-  top: 12px; right: 14px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-faint);
-  letter-spacing: 0.5px;
-}
-.broker-card .rank.gold { color: var(--amber); }
-.broker-card .broker-name {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-.broker-card .broker-tag {
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-bottom: 14px;
-}
-.broker-card .metrics { display: flex; flex-direction: column; gap: 6px; }
-.broker-card .metric-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12.5px;
-  padding: 3px 0;
-  border-bottom: none;
-}
-.broker-card .metric-row .k { color: var(--text-dim); }
-.broker-card .metric-row .v { font-family: var(--font-mono); font-weight: 500; }
-.broker-card .trend {
-  margin-top: 14px;
-  height: 30px;
-  background: var(--panel-2);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.broker-card .trend svg { width: 100%; height: 100%; display: block; }
-
-/* ============================================================
-   HEATMAP
-   ============================================================ */
-.heatmap-wrap {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 18px 20px;
-  overflow-x: auto;
-}
-.heatmap {
-  display: grid;
-  grid-template-columns: 110px repeat(8, 1fr);
-  gap: 3px;
-  min-width: 620px;
-}
-.heatmap .cell-header {
-  font-size: 10px;
-  color: var(--text-faint);
-  text-align: center;
-  padding: 4px 0;
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-.heatmap .row-label {
-  font-size: 11.5px;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  padding-right: 8px;
-  font-family: var(--font-mono);
-}
-.heatmap .cell {
-  height: 26px;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  color: rgba(0, 0, 0, 0.75);
-  font-weight: 600;
-  transition: transform 0.1s;
-}
-.heatmap .cell:hover { transform: scale(1.08); }
-.heatmap-legend {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  font-size: 11px;
-  color: var(--text-faint);
-}
-.heatmap-legend .scale {
-  display: flex;
-  height: 8px;
-  width: 180px;
-  border-radius: 2px;
-  overflow: hidden;
-}
-.heatmap-legend .scale div { flex: 1; }
-
-/* ============================================================
-   JOURNAL
-   ============================================================ */
-.journal-summary {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-bottom: none;
-}
-.flag-mini {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 2px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  font-weight: 600;
-}
-.flag-mini.ok { background: rgba(111, 207, 122, 0.15); color: var(--green); }
-.flag-mini.mild { background: rgba(232, 163, 61, 0.15); color: var(--amber); }
-.flag-mini.bad { background: rgba(229, 90, 90, 0.15); color: var(--red); }
-
-/* ============================================================
-   CALCULATOR
-   ============================================================ */
-.calc-panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 24px 26px;
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 30px;
-}
-.field { margin-bottom: 16px; }
-.field label {
-  display: block;
-  font-size: 11.5px;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-.field input {
-  background: var(--panel-2);
-  color: var(--cyan);
-  border: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 3px;
-}
-.field input:focus { outline: none; border-color: var(--cyan); }
-.calc-results {
-  background: var(--panel-2);
-  border-radius: 4px;
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.calc-results .big {
-  font-family: var(--font-mono);
-  font-size: 40px;
-  font-weight: 600;
-  color: var(--red);
-  line-height: 1;
-  margin: 6px 0;
-}
-.calc-results .caption {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 18px;
-}
-.calc-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid var(--line);
-  padding-top: 14px;
-}
-.calc-breakdown .row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12.5px;
-}
-.calc-breakdown .row .k { color: var(--text-dim); }
-.calc-breakdown .row .v { font-family: var(--font-mono); }
-
-/* ============================================================
-   RISK
-   ============================================================ */
-.risk-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.risk-panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 20px 22px;
-}
-.risk-panel .label {
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-}
-.concentration-bar {
-  height: 24px;
-  display: flex;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 14px;
-}
-.concentration-bar div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
-  font-family: var(--font-mono);
-}
-.risk-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-}
-.risk-legend .item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.risk-legend .item .key {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-dim);
-}
-.risk-legend .item .swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-.risk-legend .item .val {
-  font-family: var(--font-mono);
-  font-weight: 500;
-}
-.risk-warnings {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-.warning-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 6px 0;
-  font-size: 12.5px;
-}
-.warning-item .icon { flex-shrink: 0; }
-
-/* ============================================================
-   OUTAGE
-   ============================================================ */
-.outage-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 18px;
-}
-.outage-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: border-color 0.3s, background 0.3s;
-}
-.outage-card.down {
-  border-color: #3A1F1F;
-  background: rgba(229, 90, 90, 0.04);
-}
-.outage-card .top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.outage-card .broker-name {
-  font-size: 14px;
-  font-weight: 600;
-}
-.status-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  box-shadow: 0 0 8px currentColor;
-}
-.status-dot.up { background: var(--green); color: var(--green); }
-.status-dot.down {
-  background: var(--red);
-  color: var(--red);
-  animation: dotPulse 1.2s infinite;
-}
-@keyframes dotPulse {
-  0%, 100% { box-shadow: 0 0 8px currentColor; }
-  50% { box-shadow: 0 0 16px currentColor, 0 0 4px currentColor; }
-}
-.outage-card .status-text {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-}
-.outage-card .ping-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11.5px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-}
-.impact-panel {
-  margin-top: 4px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(229, 90, 90, 0.3);
-  display: none;
-}
-.outage-card.down .impact-panel {
-  display: block;
-  animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.impact-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
-}
-.impact-header .lbl {
-  font-size: 10px;
-  color: var(--red);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-.impact-header .val {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--red);
-}
-.impact-pos-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  padding: 3px 0;
-  font-size: 11.5px;
-  border-bottom: 1px solid rgba(35, 43, 51, 0.5);
-}
-.impact-pos-row:last-child { border-bottom: none; }
-.impact-pos-row .sym {
-  color: var(--text-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.impact-pos-row .type {
-  font-size: 9px;
-  color: var(--text-faint);
-  background: var(--panel-2);
-  padding: 1px 5px;
-  border-radius: 2px;
-  margin-left: 6px;
-  font-family: var(--font-mono);
-}
-.impact-pos-row .amt {
-  font-family: var(--font-mono);
-  color: var(--text);
-  font-weight: 500;
-}
-.outage-banner {
-  display: none;
-  background: linear-gradient(90deg, rgba(229, 90, 90, 0.12), rgba(229, 90, 90, 0.04));
-  border: 1px solid rgba(229, 90, 90, 0.35);
-  border-left: 3px solid var(--red);
-  border-radius: 4px;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-}
-.outage-banner.show { display: block; animation: fadeIn 0.3s ease; }
-.outage-banner .banner-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--red);
-  margin-bottom: 6px;
-}
-.outage-banner .banner-icon {
-  font-size: 18px;
-  animation: dotPulse 1.4s infinite;
-}
-.outage-banner .banner-body {
-  font-size: 12.5px;
-  color: var(--text-dim);
-  line-height: 1.6;
-}
-.outage-banner .banner-body strong { color: var(--text); }
-.outage-banner .banner-body .num {
-  font-family: var(--font-mono);
-  color: var(--red);
-  font-weight: 700;
-}
-.outage-banner .banner-actions {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-}
-.outage-banner .banner-actions .btn { font-size: 11.5px; padding: 6px 12px; }
-.outage-log {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  max-height: 240px;
-  overflow-y: auto;
-}
-.outage-log-row {
-  display: grid;
-  grid-template-columns: 130px 100px 1fr 80px;
-  padding: 9px 16px;
-  gap: 12px;
-  border-bottom: 1px solid var(--line);
-  font-size: 12.5px;
-  align-items: center;
-}
-.outage-log-row:last-child { border-bottom: none; }
-.outage-log-row .time {
-  font-family: var(--font-mono);
-  color: var(--text-dim);
-}
-.outage-log-row .broker {
-  font-family: var(--font-mono);
-  font-weight: 500;
-}
-.outage-log-row .desc { color: var(--text-dim); }
-.outage-log-row .duration {
-  font-family: var(--font-mono);
-  text-align: right;
-  color: var(--amber);
-}
-
-/* ============================================================
-   SLIDE PANEL (Notifications)
-   ============================================================ */
-.slide-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-.slide-overlay.show { opacity: 1; pointer-events: auto; }
-.slide-panel {
-  position: fixed;
-  top: 0; right: 0; bottom: 0;
-  width: 380px;
-  max-width: 92vw;
-  background: var(--panel);
-  border-left: 1px solid var(--line);
-  z-index: 101;
-  transform: translateX(100%);
-  transition: transform 0.25s ease;
-  display: flex;
-  flex-direction: column;
-}
-.slide-panel.show { transform: translateX(0); }
-.slide-head {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.slide-head h3 { font-size: 14px; font-weight: 600; }
-.slide-close {
-  width: 28px; height: 28px;
-  border-radius: 3px;
-  color: var(--text-dim);
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.slide-close:hover { background: var(--panel-2); color: var(--text); }
-.slide-body { flex: 1; overflow-y: auto; }
-.notif-item {
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-.notif-item:last-child { border-bottom: none; }
-.notif-item .icon-circle {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 14px;
-}
-.notif-item.alert .icon-circle {
-  background: rgba(229, 90, 90, 0.15);
-  color: var(--red);
-}
-.notif-item.warn .icon-circle {
-  background: rgba(232, 163, 61, 0.15);
-  color: var(--amber);
-}
-.notif-item.info .icon-circle {
-  background: rgba(61, 217, 196, 0.15);
-  color: var(--cyan);
-}
-.notif-item .notif-body { flex: 1; min-width: 0; }
-.notif-item .notif-title {
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-.notif-item .notif-desc {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.notif-item .notif-time {
-  font-size: 10.5px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  margin-top: 4px;
-}
-
-/* ============================================================
-   SETTINGS MODAL
-   ============================================================ */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-.modal-backdrop.show { opacity: 1; pointer-events: auto; }
-.modal {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  width: 480px;
-  max-width: 92vw;
-  max-height: 80vh;
-  overflow-y: auto;
-  transform: scale(0.96);
-  transition: transform 0.2s;
-}
-.modal-backdrop.show .modal { transform: scale(1); }
-.modal-head {
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-head h3 { font-size: 14px; font-weight: 600; }
-.modal-body { padding: 18px 22px; }
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-.setting-row:last-child { border-bottom: none; }
-.setting-row .label {
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-.setting-row .desc {
-  font-size: 11.5px;
-  color: var(--text-faint);
-}
-.setting-row input[type="number"],
-.setting-row select {
-  background: var(--panel-2);
-  color: var(--cyan);
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  padding: 5px 8px;
-}
-.toggle {
-  width: 34px;
-  height: 20px;
-  background: var(--line);
-  border-radius: 10px;
-  position: relative;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-.toggle.on { background: var(--cyan); }
-.toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 0.15s;
-}
-.toggle.on::after { transform: translateX(14px); }
-
-/* ============================================================
-   TOAST
-   ============================================================ */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--panel);
-  border: 1px solid var(--cyan);
-  color: var(--text);
-  padding: 12px 20px;
-  border-radius: 4px;
-  font-size: 13px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.25s;
-  z-index: 200;
-}
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ============================================================
-   SCROLLBARS
-   ============================================================ */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--line);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 900px) {
-  .sidebar {
-    position: fixed;
-    top: 0; bottom: 0; left: 0;
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-  }
-  .sidebar.open { transform: translateX(0); }
-  .hamburger { display: flex; }
-  .hero-grid, .calc-panel { grid-template-columns: 1fr; }
-  .score-block { border-right: none; padding-right: 0; }
-  .pf-stats, .stats-grid, .journal-summary { grid-template-columns: repeat(2, 1fr); }
-  .broker-cards, .outage-grid, .risk-grid { grid-template-columns: 1fr; }
-  .volatility-dashboard { grid-template-columns: 1fr; }
-  .view-container { padding: 18px 16px 60px; }
-}
-</style>
+        /* AUDIT TIMELINE */
+        .timeline { margin-top: 24px; border-left: 2px solid var(--border); padding-left: 24px; }
+        .timeline-item { position: relative; padding-bottom: 24px; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -31px; top: 0;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--bg-panel); border: 2px solid var(--accent-cyan);
+        }
+        .timeline-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+        .timeline-content { font-size: 14px; }
+        .timeline-content .mono { display: block; margin-top: 4px; font-size: 13px; color: var(--text-main); }
+    </style>
 </head>
 <body>
 
-<!-- ============================================================
-     APP SHELL
-     ============================================================ -->
-<div class="app-shell">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-mark"></span>
-      <div class="brand-text">
-        <div class="name">TradeGuard</div>
-        <span class="tag">Execution Integrity</span>
-      </div>
-    </div>
-
-    <nav class="sidebar-nav" id="sidebarNav">
-      <div class="nav-group">Overview</div>
-      <button class="nav-item" data-view="dashboard">
-        <span class="icon">◈</span>
-        <span class="label">Dashboard</span>
-      </button>
-
-      <div class="nav-group">Verification</div>
-      <button class="nav-item" data-view="verification">
-        <span class="icon">◆</span>
-        <span class="label">Fill Audit</span>
-      </button>
-      <button class="nav-item" data-view="partial-fill">
-        <span class="icon">◐</span>
-        <span class="label">Partial-Fill</span>
-        <span class="pill live">Live</span>
-      </button>
-
-      <div class="nav-group">Analytics</div>
-      <button class="nav-item" data-view="scorecard">
-        <span class="icon">◉</span>
-        <span class="label">Scorecard</span>
-      </button>
-      <button class="nav-item" data-view="heatmap">
-        <span class="icon">▦</span>
-        <span class="label">Heatmap</span>
-      </button>
-      <button class="nav-item" data-view="journal">
-        <span class="icon">▤</span>
-        <span class="label">Trade Journal</span>
-      </button>
-      <button class="nav-item" data-view="calculator">
-        <span class="icon">∑</span>
-        <span class="label">Cost Calculator</span>
-      </button>
-
-      <div class="nav-group">Risk &amp; Safety</div>
-      <button class="nav-item" data-view="risk">
-        <span class="icon">△</span>
-        <span class="label">Multi-Broker Risk</span>
-      </button>
-      <button class="nav-item" data-view="outage">
-        <span class="icon">⚡</span>
-        <span class="label">Outage Detection</span>
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="row">
-        <span><span class="dot-live"></span>Live</span>
-        <span>v0.5.0</span>
-      </div>
-      <div style="margin-top: 6px; opacity: 0.7;">Demo · synthetic data</div>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main-area">
-
-    <header class="topbar">
-      <button class="hamburger" id="hamburger">☰</button>
-      <div class="topbar-title">
-        <span class="crumb" id="crumb">Overview</span>
-        <span class="page-name" id="pageName">Unified Holdings</span>
-      </div>
-      <div class="topbar-right">
-        <span class="clock" id="clock">--:--:--</span>
-        <button class="icon-btn" id="notifBtn" title="Notifications">
-          🔔<span class="badge-count" id="notifCount">3</span>
-        </button>
-        <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
-      </div>
-    </header>
-
-    <div class="view-container" id="viewContainer">
-
-      <!-- ============ VIEW: DASHBOARD ============ -->
-      <section class="view" data-view="dashboard">
-        <div class="section-head">
-          <h2>Unified Holdings</h2>
-          <span class="sub">Zerodha · Groww · CoinDCX — read-only aggregation</span>
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <div class="brand">
+            <div class="brand-dot"></div>
+            TradeGuard
         </div>
-        <div class="stats-grid">
-          <div class="stat"><div class="label">Total value</div><div class="value mono">₹8,42,610</div><div class="delta up">+1.84% today</div></div>
-          <div class="stat"><div class="label">Equity &amp; F&amp;O</div><div class="value mono">₹5,61,300</div><div class="delta up">+2.10%</div></div>
-          <div class="stat"><div class="label">Mutual funds</div><div class="value mono">₹2,08,940</div><div class="delta down">−0.32%</div></div>
-          <div class="stat"><div class="label">Crypto</div><div class="value mono">₹72,370</div><div class="delta up">+4.71%</div></div>
-        </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Instrument</th><th>Source</th>
-              <th class="num">Qty</th><th class="num">Avg. price</th>
-              <th class="num">LTP</th><th class="num">P&amp;L</th>
-            </tr>
-          </thead>
-          <tbody id="holdingsBody"></tbody>
-        </table>
-      </section>
-
-      <!-- ============ VIEW: VERIFICATION ============ -->
-      <section class="view" data-view="verification">
-        <div class="section-head">
-          <h2>Execution Verification</h2>
-          <span class="sub">fills vs. independent price feed, per broker</span>
-        </div>
-        <div class="panel panel-accent">
-          <div class="hero-grid">
-            <div class="score-block">
-              <div class="score-label">Composite execution score</div>
-              <div class="score-value" id="scoreValue">—</div>
-              <div class="score-note" id="scoreNote">Run verification to score last session's fills</div>
-              <div class="score-bars" id="brokerBars"></div>
-              <div class="actions" style="margin-top: 8px;">
-                <button class="btn" id="runBtn">▶ Run verification</button>
-                <button class="btn secondary" id="resetBtn">↺ Reset</button>
-                <span class="run-note" id="runNote">28 simulated fills queued</span>
-              </div>
-            </div>
-            <div>
-              <div class="feed-title">Live fill audit</div>
-              <div class="feed" id="feedList">
-                <div class="run-note" style="padding: 20px 0;">No fills verified yet — press Run verification.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: PARTIAL-FILL ============ -->
-      <section class="view" data-view="partial-fill">
-        <div class="section-head">
-          <h2>Partial-Fill Monitor</h2>
-          <span class="sub">large order · adaptive auto-cancel on tolerance breach</span>
-        </div>
-        <div class="panel">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <!-- ORDER FORM -->
-            <div>
-              <div class="field">
-                <label>Broker Selection</label>
-                <select id="pfBroker" class="input" style="width: 100%; padding: 8px 12px; margin-bottom: 8px;">
-                  <option value="Zerodha">Zerodha</option>
-                  <option value="Angel One">Angel One</option>
-                  <option value="Groww">Groww</option>
-                </select>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="field">
-                  <label>Symbol</label>
-                  <input type="text" id="pfSymbol" class="input symbol" value="RELIANCE" maxlength="20" spellcheck="false" style="width: 100%; padding: 8px 12px;">
-                </div>
-                <div class="field">
-                  <label>Buy / Sell</label>
-                  <select id="pfSide" class="input" style="width: 100%; padding: 8px 12px;">
-                    <option value="BUY">BUY</option>
-                    <option value="SELL">SELL</option>
-                  </select>
-                </div>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="field">
-                  <label>Order Type</label>
-                  <select id="pfOrderType" class="input" style="width: 100%; padding: 8px 12px;">
-                    <option value="MARKET">Market</option>
-                    <option value="LIMIT">Limit</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Quantity</label>
-                  <input type="number" id="pfQty" class="input" value="1000000" min="1" step="1" style="width: 100%; padding: 8px 12px;">
-                </div>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="field">
-                  <label>Target Price (₹)</label>
-                  <input type="number" id="pfRefPrice" class="input" value="250.00" min="0.01" step="0.05" style="width: 100%; padding: 8px 12px;">
-                </div>
-                <div class="field">
-                  <label>Max Slippage (%)</label>
-                  <input type="number" id="pfTolPct" class="input" value="0.05" min="0.01" max="5" step="0.01" style="width: 100%; padding: 8px 12px;">
-                </div>
-              </div>
-              <div class="actions" style="margin-top: 14px;">
-                <button class="btn" id="pfRunBtn" style="width: 100%; padding: 10px;">▶ Execute Order</button>
-              </div>
-              <div class="run-note" style="margin-top: 8px; line-height: 1.4;">
-                <span style="color: var(--cyan);">TradeGuard monitors simulated execution slippage and pauses the remaining order when the predefined slippage threshold is exceeded.</span>
-              </div>
+        <div style="flex:1; overflow-y:auto; padding: 12px 0;">
+            
+            <div class="nav-group">
+                <div class="nav-title">Overview</div>
+                <a class="nav-item active" data-view="dashboard">Dashboard</a>
             </div>
 
-            <!-- EXECUTION RESULTS -->
-            <div>
-              <div class="calc-results" style="height: 100%; justify-content: flex-start; padding: 18px; overflow-y: auto; max-height: 520px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <div class="caption" style="margin-bottom: 0;">Execution Verification</div>
-                  <div class="status idle" id="pfStatus">IDLE</div>
-                </div>
-                
-                <div id="pfResultCard" style="display: none; flex-direction: column; gap: 12px;">
-                  <div id="pfResultAlert" style="padding: 10px 14px; border-radius: 4px; font-weight: 600; font-size: 13px;"></div>
-                  <div style="font-size: 12px; color: var(--text-dim);" id="pfResultReason"></div>
-                  <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;"><strong style="color:var(--text);">Action:</strong> <span id="pfResultAction"></span></div>
+            <div class="nav-group">
+                <div class="nav-title">Execution</div>
+                <a class="nav-item" data-view="trade">Trade Ticket</a>
+                <a class="nav-item" data-view="monitor">Execution Monitor</a>
+            </div>
 
-                  <div class="calc-breakdown" style="border-top: none; padding-top: 0;">
-                    <div class="row"><span class="k">Broker</span><span class="v mono" id="pfResBroker">—</span></div>
-                    <div class="row"><span class="k">Requested Qty</span><span class="v mono" id="pfResReqQty">—</span></div>
-                    <div class="row"><span class="k">Executed Qty</span><span class="v mono" id="pfResExecQty">—</span></div>
-                    <div class="row"><span class="k">Remaining Qty</span><span class="v mono" id="pfResPausedQty">—</span></div>
-                    <div class="row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);"><span class="k">Target Price</span><span class="v mono" id="pfResTarget">—</span></div>
-                    <div class="row"><span class="k">Avg Execution Price</span><span class="v mono" id="pfResAvg">—</span></div>
-                    <div class="row"><span class="k">Actual Slippage</span><span class="v mono" id="pfResSlippage" style="font-weight: 700; color: var(--cyan);">—</span></div>
-                    <div class="row"><span class="k">Max Allowed Slippage</span><span class="v mono" id="pfResMaxSlippage">—</span></div>
-                  </div>
-                  
-                  <div style="margin-top: 16px;">
-                    <div class="caption" style="margin-bottom: 8px;">Fill Audit</div>
-                    <div id="pfFillAuditList" style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; border: 1px solid var(--line); padding: 10px; border-radius: 4px; background: var(--panel);">
+            <div class="nav-group">
+                <div class="nav-title">Records</div>
+                <a class="nav-item" data-view="orders">Order History</a>
+                <a class="nav-item" data-view="verification">Verification</a>
+                <a class="nav-item" data-view="audit">Fill Audit</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-title">System</div>
+                <a class="nav-item" data-view="brokers">Connected Brokers</a>
+                <a class="nav-item" data-view="analytics">Analytics</a>
+            </div>
+            
+        </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main id="main-area">
+        <header id="topbar">
+            <div class="page-context" id="page-title">Dashboard</div>
+            <div class="topbar-status">
+                <div class="status-pill"><div class="dot green"></div> MARKETS OPEN</div>
+                <div class="status-pill"><div class="dot green"></div> 3 BROKERS CONNECTED</div>
+            </div>
+        </header>
+
+        <div id="content">
+
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboard" class="view active">
+                <div class="section-title" style="margin-bottom: 8px;">Good evening.</div>
+                <span class="sub-title">Monitor your execution quality in real time.</span>
+
+                <div class="panel hero-card" style="margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h2 style="font-size: 24px; margin-bottom: 8px;">SLIPPAGE CONTROL</h2>
+                            <p style="color: var(--text-muted); font-size: 14px;">Real-time threshold protection</p>
+                        </div>
+                        <div class="badge cyan" style="font-size: 14px; padding: 8px 16px;">ACTIVE</div>
                     </div>
-                  </div>
+                    
+                    <div class="grid-3" style="margin-top: 32px;">
+                        <div>
+                            <div class="kpi-label">Current Avg Slippage</div>
+                            <div class="kpi-value text-cyan" id="dash-avg-slippage">0.00%</div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Default Threshold limit</div>
+                            <div class="kpi-value">0.10%</div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Protection Status</div>
+                            <div class="kpi-value text-green">WITHIN LIMIT</div>
+                        </div>
+                    </div>
+
+                    <div class="meter-container" style="margin-top: 32px;">
+                        <div class="meter-track">
+                            <div class="meter-fill" style="width: 20%;"></div>
+                            <div class="meter-limit" style="left: 70%;" title="Threshold"></div>
+                        </div>
+                        <div class="meter-labels">
+                            <span>0%</span>
+                            <span style="text-align: center; width: 100%; position: absolute;">Actual: <span class="text-cyan">0.02%</span></span>
+                            <span>Limit: 0.10%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-4">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Orders</div>
+                        <div class="kpi-value" id="dash-total-orders">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Executed fully</div>
+                        <div class="kpi-value text-green" id="dash-executed">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Partially Filled (Paused)</div>
+                        <div class="kpi-value text-amber" id="dash-paused">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Slippage Limit Breaches</div>
+                        <div class="kpi-value text-red" id="dash-breaches">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRADE TICKET VIEW -->
+            <div id="trade" class="view">
+                <div class="section-title">Execution Ticket</div>
+                <div class="grid-2">
+                    <div class="panel">
+                        <h3 style="margin-bottom: 24px; font-weight: 500;">NEW TRADE</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Broker</label>
+                            <select id="trade-broker" class="form-control">
+                                <option value="Zerodha">Zerodha</option>
+                                <option value="Angel One">Angel One</option>
+                                <option value="Groww">Groww</option>
+                            </select>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Instrument</label>
+                                <input type="text" id="trade-symbol" class="form-control" value="RELIANCE">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Side</label>
+                                <select id="trade-side" class="form-control">
+                                    <option value="BUY">BUY</option>
+                                    <option value="SELL">SELL</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Order Type</label>
+                                <select id="trade-type" class="form-control">
+                                    <option value="MARKET">MARKET</option>
+                                    <option value="LIMIT">LIMIT</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" id="trade-qty" class="form-control" value="1000000">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Reference Price (₹)</label>
+                                <input type="number" id="trade-price" class="form-control" value="250.00" step="0.05">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Maximum Slippage (%)</label>
+                                <input type="number" id="trade-slip" class="form-control" value="0.05" step="0.01">
+                            </div>
+                        </div>
+
+                        <button class="btn" id="btn-review" style="margin-top: 16px;">REVIEW ORDER</button>
+                    </div>
+
+                    <div class="panel">
+                        <h3 style="margin-bottom: 24px; font-weight: 500;">LIVE EXECUTION PREVIEW</h3>
+                        
+                        <div class="data-row">
+                            <span class="data-label">Market Status</span>
+                            <span class="data-value text-green">OPEN</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Current Market Price</span>
+                            <span class="data-value" id="preview-cmp">Loading...</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Your Reference Price</span>
+                            <span class="data-value" id="preview-ref">₹250.00</span>
+                        </div>
+                        
+                        <div style="margin-top: 32px; padding: 16px; background: var(--bg-base); border-radius: 8px; border: 1px solid var(--border);">
+                            <div class="data-row" style="border: none; padding-top: 0;">
+                                <span class="data-label">Expected Slippage Profile</span>
+                                <span class="data-value text-amber">0.02% - 0.08%</span>
+                            </div>
+                            <div class="data-row" style="border: none;">
+                                <span class="data-label">Your Configured Limit</span>
+                                <span class="data-value text-cyan" id="preview-limit">0.05%</span>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <span class="badge gray">✓ PROTECTION ACTIVE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXECUTION MONITOR VIEW -->
+            <div id="monitor" class="view">
+                <div class="section-title">Execution Monitor</div>
+                
+                <div id="monitor-empty" class="panel" style="text-align: center; padding: 64px;">
+                    <h3 style="margin-bottom: 16px; color: var(--text-muted);">NO ACTIVE EXECUTION</h3>
+                    <p style="margin-bottom: 24px;">Execute your first trade to begin monitoring execution quality.</p>
+                    <button class="btn btn-outline" style="width: auto;" onclick="nav('trade')">START TRADING</button>
+                </div>
+
+                <div id="monitor-active" style="display: none;">
+                    <div class="panel hero-card" style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+                            <div>
+                                <div class="badge gray" style="margin-bottom: 8px;" id="mon-broker">ZERODHA</div>
+                                <h2 style="font-size: 24px; font-family: var(--font-mono);" id="mon-title">BUY 1,000,000 RELIANCE</h2>
+                                <p style="color: var(--text-muted); font-size: 13px; font-family: var(--font-mono); margin-top: 8px;" id="mon-id">Order #TG-1234</p>
+                            </div>
+                            <div class="badge red" id="mon-status" style="font-size: 14px; padding: 8px 16px;">PAUSED</div>
+                        </div>
+
+                        <div class="meter-container">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-family: var(--font-mono); font-size: 12px;">
+                                <span>Requested: <span class="text-main" id="mon-req">1,000,000</span></span>
+                                <span>Executed: <span class="text-cyan" id="mon-exec">500,000</span></span>
+                                <span>Remaining: <span class="text-amber" id="mon-rem">500,000</span></span>
+                            </div>
+                            <div class="meter-track" style="height: 12px; background: rgba(255,255,255,0.05);">
+                                <div class="meter-fill" id="mon-progress" style="width: 50%; background: var(--accent-cyan);"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid-4" style="margin-top: 32px;">
+                            <div>
+                                <div class="kpi-label">Target Price</div>
+                                <div class="kpi-value" id="mon-target">₹250.00</div>
+                            </div>
+                            <div>
+                                <div class="kpi-label">Avg Execution Price</div>
+                                <div class="kpi-value" id="mon-avg">₹250.18</div>
+                            </div>
+                            <div>
+                                <div class="kpi-label">Max Allowed Slippage</div>
+                                <div class="kpi-value" id="mon-max-slip">0.050%</div>
+                            </div>
+                            <div>
+                                <div class="kpi-label">Actual Slippage</div>
+                                <div class="kpi-value text-red" id="mon-act-slip">0.072%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="panel">
+                            <h3 style="margin-bottom: 24px; font-weight: 500;">VERIFICATION STATUS</h3>
+                            <div id="mon-ver-status" style="font-size: 18px; font-weight: 600; color: var(--color-red); margin-bottom: 16px;">
+                                ⚠ SLIPPAGE LIMIT EXCEEDED
+                            </div>
+                            <p id="mon-ver-reason" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 16px;">
+                                Actual slippage of 0.072% exceeded the allowed limit of 0.05%.
+                            </p>
+                            <div style="padding: 12px; background: var(--bg-base); border-left: 3px solid var(--color-red); border-radius: 4px;">
+                                <strong style="font-size: 12px; text-transform: uppercase; color: var(--text-muted);">Action Taken</strong><br>
+                                <span id="mon-ver-action" style="font-family: var(--font-mono); font-size: 14px; margin-top: 4px; display: block;">Remaining order paused.</span>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <h3 style="margin-bottom: 24px; font-weight: 500;">FILL AUDIT TIMELINE</h3>
+                            <div class="timeline" id="mon-timeline">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECORDS: ORDERS -->
+            <div id="orders" class="view">
+                <div class="section-title">Order History</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Order ID</th>
+                                <th>Broker</th>
+                                <th>Instrument</th>
+                                <th>Side</th>
+                                <th>Requested</th>
+                                <th>Executed</th>
+                                <th>Avg Price</th>
+                                <th>Slippage</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr><td colspan="10" style="text-align:center; padding: 40px; color: var(--text-muted);">No execution records found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RECORDS: VERIFICATION -->
+            <div id="verification" class="view">
+                <div class="section-title">Execution Verification</div>
+                <span class="sub-title">Cryptographic audit of execution quality against user constraints.</span>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Status</th>
+                                <th>Actual Slippage</th>
+                                <th>Limit</th>
+                                <th>Action Taken</th>
+                                <th>View</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ver-tbody">
+                            <tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">No verification records found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RECORDS: AUDIT -->
+            <div id="audit" class="view">
+                <div class="section-title">Fill Audit</div>
+                <span class="sub-title">Detailed execution trail for transparency.</span>
+                <div class="panel" style="margin-bottom: 24px; display: flex; gap: 16px; align-items: center;">
+                    <label class="form-label" style="margin: 0;">Select Order:</label>
+                    <select class="form-control" id="audit-select" style="width: 300px;">
+                        <option value="">No recent orders</option>
+                    </select>
+                    <button class="btn btn-outline" style="width: auto; padding: 8px 16px;" onclick="loadAuditForSelect()">LOAD</button>
                 </div>
                 
-                <div id="pfIdleState" style="text-align: center; padding: 40px 0; color: var(--text-faint);">
-                  Click "Execute Order" to simulate execution
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fill ID</th>
+                                <th>Time</th>
+                                <th>Fill Qty</th>
+                                <th>Fill Price</th>
+                                <th>Cumulative Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-tbody">
+                            <tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Select an order to view fills.</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-              </div>
             </div>
-          </div>
-          
-          <div style="margin-top: 20px;">
-            <div class="section-head" style="margin-bottom: 12px;">
-              <h2 style="font-size: 14px;">Execution History</h2>
-            </div>
-            <div class="table-wrap" style="max-height: 250px;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Time</th><th>Broker</th><th>Symbol</th><th>Side</th>
-                    <th class="num">Req Qty</th><th class="num">Exec Qty</th>
-                    <th class="num">Avg Price</th><th class="num">Slippage</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                  <tr><td colspan="9" style="text-align: center; color: var(--text-faint);">No recent simulated orders</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
 
-          <div class="volatility-dashboard">
-            <div class="volatility-panel">
-              <div class="label">📊 Market Volatility Index</div>
-              <div class="volatility-gauge">
-                <div class="volatility-ring">
-                  <svg width="70" height="70" viewBox="0 0 70 70">
-                    <circle cx="35" cy="35" r="30" fill="none" stroke="#232B33" stroke-width="6"/>
-                    <circle cx="35" cy="35" r="30" fill="none" stroke="#E8A33D" stroke-width="6"
-                            stroke-dasharray="188.5" stroke-dashoffset="188.5" id="volatilityArc"/>
-                  </svg>
-                  <span class="pct" id="volatilityPct">0%</span>
+            <!-- SYSTEM: BROKERS -->
+            <div id="brokers" class="view">
+                <div class="section-title">Connected Brokers</div>
+                <span class="sub-title">Execution channels integrated with TradeGuard.</span>
+                
+                <div class="grid-3">
+                    <div class="panel" style="border-top: 3px solid var(--color-green);">
+                        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="font-size: 18px;">Zerodha</h3>
+                            <div class="badge green">● SIMULATED</div>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Full support for market/limit orders and partial-fill slippage monitoring.</p>
+                        <div class="data-row"><span class="data-label">API Status</span><span class="data-value text-green">Online</span></div>
+                        <div class="data-row"><span class="data-label">Latency</span><span class="data-value">42ms</span></div>
+                    </div>
+                    
+                    <div class="panel" style="border-top: 3px solid var(--color-green);">
+                        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="font-size: 18px;">Angel One</h3>
+                            <div class="badge green">● SIMULATED</div>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Full support for market/limit orders and partial-fill slippage monitoring.</p>
+                        <div class="data-row"><span class="data-label">API Status</span><span class="data-value text-green">Online</span></div>
+                        <div class="data-row"><span class="data-label">Latency</span><span class="data-value">55ms</span></div>
+                    </div>
+
+                    <div class="panel" style="border-top: 3px solid var(--color-green);">
+                        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="font-size: 18px;">Groww</h3>
+                            <div class="badge green">● SIMULATED</div>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Full support for market/limit orders and partial-fill slippage monitoring.</p>
+                        <div class="data-row"><span class="data-label">API Status</span><span class="data-value text-green">Online</span></div>
+                        <div class="data-row"><span class="data-label">Latency</span><span class="data-value">61ms</span></div>
+                    </div>
+                    
+                    <div class="panel" style="border-top: 3px solid var(--text-muted); opacity: 0.7;">
+                        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="font-size: 18px;">Upstox</h3>
+                            <div class="badge gray">COMING SOON</div>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 13px;">Integration currently in development. Expected Q4.</p>
+                    </div>
                 </div>
-                <div class="volatility-details">
-                  <div class="metric-row"><span class="k">Status</span><span class="v" id="volatilityStatus">—</span></div>
-                  <div class="metric-row"><span class="k">VIX Equivalent</span><span class="v" id="vixEquivalent">—</span></div>
-                  <div class="metric-row"><span class="k">Market Phase</span><span class="v" id="marketPhase">—</span></div>
+            </div>
+
+            <!-- ANALYTICS -->
+            <div id="analytics" class="view">
+                <div class="section-title">Analytics</div>
+                <div class="panel" style="text-align: center; padding: 64px;">
+                    <h3 style="margin-bottom: 16px; color: var(--text-muted);">INSUFFICIENT DATA</h3>
+                    <p>Execute more trades to generate historical execution analytics.</p>
                 </div>
-              </div>
             </div>
-            <div class="volatility-panel">
-              <div class="label">🎯 Slippage Probability</div>
-              <div style="margin-bottom: 10px;">
-                <div class="metric-row"><span class="k">Current probability</span><span class="v mono" id="slippageProbValue">—</span></div>
-                <div class="metric-row"><span class="k">Expected slippage</span><span class="v mono" id="expectedSlippage">—</span></div>
-              </div>
-              <div class="slippage-bar-wrap">
-                <span class="bar-mini-label">Low</span>
-                <div class="slippage-bar-track"><div class="slippage-bar-fill" id="slippageBar" style="width: 0%"></div></div>
-                <span class="bar-mini-label">High</span>
-                <span class="slippage-bar-label" id="slippageBarLabel">0%</span>
-              </div>
+
+        </div>
+    </main>
+
+    <!-- REVIEW ORDER MODAL -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="font-size: 18px;">ORDER CONFIRMATION</h3>
+                <button style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;" onclick="closeModal()">×</button>
             </div>
-          </div>
+            <div class="modal-body">
+                <h4 style="color: var(--text-muted); margin-bottom: 16px; font-size: 12px; letter-spacing: 1px;">ORDER SUMMARY</h4>
+                <div class="data-row"><span class="data-label">Broker</span><span class="data-value" id="mod-broker"></span></div>
+                <div class="data-row"><span class="data-label">Instrument</span><span class="data-value" id="mod-sym"></span></div>
+                <div class="data-row"><span class="data-label">Side & Type</span><span class="data-value" id="mod-side"></span></div>
+                <div class="data-row"><span class="data-label">Quantity</span><span class="data-value mono" id="mod-qty"></span></div>
+                <div class="data-row"><span class="data-label">Reference Price</span><span class="data-value mono" id="mod-price"></span></div>
 
-          <div class="pretrade-tips">
-            <div class="title">💡 Pre-Trade Suggestions (auto-generated)</div>
-            <ul id="pretradeTips"></ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: SCORECARD ============ -->
-      <section class="view" data-view="scorecard">
-        <div class="section-head">
-          <h2>Broker Execution Scorecard</h2>
-          <span class="sub">30-day rolling · verified against independent feed</span>
-        </div>
-        <div class="broker-cards" id="brokerCards"></div>
-        <div class="panel" style="padding: 14px 20px; font-size: 12.5px; color: var(--text-dim);">
-          <strong style="color: var(--cyan);">Why this matters:</strong>
-          No public source today publishes broker-by-broker execution quality. TradeGuard is the first to make this data transparent — a foundation for both trader advocacy and B2B benchmarking.
-        </div>
-      </section>
-
-      <!-- ============ VIEW: HEATMAP ============ -->
-      <section class="view" data-view="heatmap">
-        <div class="section-head">
-          <h2>Broker Performance Heatmap</h2>
-          <span class="sub">avg slippage by broker × time of day (30d)</span>
-        </div>
-        <div class="heatmap-wrap">
-          <div class="heatmap" id="heatmap"></div>
-          <div class="heatmap-legend">
-            <span>Lower slippage</span>
-            <div class="scale">
-              <div style="background: #6FCF7A"></div>
-              <div style="background: #A8D46C"></div>
-              <div style="background: #E8C63D"></div>
-              <div style="background: #E8A33D"></div>
-              <div style="background: #E55A5A"></div>
+                <h4 style="color: var(--text-muted); margin: 24px 0 16px; font-size: 12px; letter-spacing: 1px;">EXECUTION PROTECTION</h4>
+                <div class="data-row"><span class="data-label">Maximum Slippage</span><span class="data-value mono text-cyan" id="mod-slip"></span></div>
+                
+                <div style="margin-top: 24px; padding: 12px; background: var(--bg-base); border-radius: 4px; display:flex; align-items:center; gap: 12px;">
+                    <div class="badge green">✓ PROTECTED</div>
+                    <span style="font-size: 12px; color: var(--text-muted);">Order will pause if average execution slippage exceeds threshold.</span>
+                </div>
             </div>
-            <span>Higher slippage</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: JOURNAL ============ -->
-      <section class="view" data-view="journal">
-        <div class="section-head">
-          <h2>Trade Journal</h2>
-          <span class="sub">every fill logged · cumulative slippage cost</span>
-          <div class="actions">
-            <button class="btn secondary tiny" id="exportBtn">↓ Export CSV</button>
-          </div>
-        </div>
-        <div class="journal-summary">
-          <div class="stat"><div class="label">Total trades</div><div class="value mono" id="jTotal">0</div></div>
-          <div class="stat"><div class="label">Avg slippage</div><div class="value mono" id="jAvg">—</div></div>
-          <div class="stat"><div class="label">Total slippage cost</div><div class="value mono down" id="jCost">—</div></div>
-          <div class="stat"><div class="label">Worst fill</div><div class="value mono down" id="jWorst">—</div></div>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Time</th><th>Symbol</th><th>Broker</th>
-                <th class="num">Expected</th><th class="num">Filled</th>
-                <th class="num">Slippage</th><th class="num">Cost (₹)</th><th>Flag</th>
-              </tr>
-            </thead>
-            <tbody id="journalBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: CALCULATOR ============ -->
-      <section class="view" data-view="calculator">
-        <div class="section-head">
-          <h2>Slippage Cost Calculator</h2>
-          <span class="sub">estimate your hidden annual losses</span>
-        </div>
-        <div class="calc-panel">
-          <div>
-            <div class="field"><label>Monthly trades</label><input type="number" id="calcTrades" value="40" min="1" step="1"></div>
-            <div class="field"><label>Avg. order value (₹)</label><input type="number" id="calcOrderValue" value="50000" min="1000" step="1000"></div>
-            <div class="field"><label>Avg. slippage per trade (%)</label><input type="number" id="calcSlippage" value="0.18" min="0" max="5" step="0.01"></div>
-            <button class="btn" id="calcBtn" style="width: 100%; margin-top: 6px;">Recalculate</button>
-          </div>
-          <div class="calc-results">
-            <div class="caption">Estimated annual slippage cost</div>
-            <div class="big" id="calcResult">—</div>
-            <div class="calc-breakdown">
-              <div class="row"><span class="k">Monthly loss</span><span class="v" id="calcMonthly">—</span></div>
-              <div class="row"><span class="k">Yearly loss</span><span class="v" id="calcYearly">—</span></div>
-              <div class="row"><span class="k">Over 5 years (compounded)</span><span class="v" id="calc5y">—</span></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">CANCEL</button>
+                <button class="btn" id="btn-confirm-exec" onclick="executeOrder()">CONFIRM & EXECUTE</button>
             </div>
-          </div>
         </div>
-      </section>
-
-      <!-- ============ VIEW: RISK ============ -->
-      <section class="view" data-view="risk">
-        <div class="section-head">
-          <h2>Multi-Broker Risk Dashboard</h2>
-          <span class="sub">cross-platform exposure · concentration warnings</span>
-        </div>
-        <div class="risk-grid">
-          <div class="risk-panel">
-            <div class="label">Sector Concentration</div>
-            <div class="concentration-bar" id="sectorBar"></div>
-            <div class="risk-legend" id="sectorLegend"></div>
-          </div>
-          <div class="risk-panel">
-            <div class="label">Broker Exposure</div>
-            <div class="concentration-bar" id="brokerBar"></div>
-            <div class="risk-legend" id="brokerLegend"></div>
-          </div>
-        </div>
-        <div class="risk-panel" style="margin-top: 14px;">
-          <div class="label">⚠ Concentration Warnings</div>
-          <div class="risk-warnings" id="riskWarnings"></div>
-        </div>
-      </section>
-
-      <!-- ============ VIEW: OUTAGE ============ -->
-      <section class="view" data-view="outage">
-        <div class="section-head">
-          <h2>Broker Outage Detection</h2>
-          <span class="sub">live health-check · position impact analysis</span>
-          <div class="actions">
-            <button class="btn secondary tiny" id="simulateOutageBtn">⚠ Simulate Outage</button>
-          </div>
-        </div>
-
-        <div class="outage-banner" id="outageBanner">
-          <div class="banner-head">
-            <span class="banner-icon">🔴</span>
-            <span id="bannerTitle">Broker Unreachable</span>
-          </div>
-          <div class="banner-body" id="bannerBody"></div>
-          <div class="banner-actions">
-            <button class="btn danger" id="bannerSmsBtn">📱 Send SMS Alert</button>
-            <button class="btn secondary" id="bannerCallBtn">📞 Auto-Call</button>
-            <button class="btn secondary" id="bannerDismissBtn">Dismiss</button>
-          </div>
-        </div>
-
-        <div class="outage-grid" id="outageGrid"></div>
-        <div class="outage-log" id="outageLog"></div>
-      </section>
-
     </div>
-  </main>
-</div>
 
-<!-- Notifications slide-over -->
-<div class="slide-overlay" id="notifOverlay"></div>
-<aside class="slide-panel" id="notifPanel">
-  <div class="slide-head">
-    <h3>Notifications</h3>
-    <button class="slide-close" id="notifClose">×</button>
-  </div>
-  <div class="slide-body" id="notifBody"></div>
-</aside>
-
-<!-- Settings modal -->
-<div class="modal-backdrop" id="settingsModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>Settings</h3>
-      <button class="slide-close" id="settingsClose">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="setting-row">
-        <div><div class="label">Default slippage tolerance</div><div class="desc">Applied to new orders by default</div></div>
-        <input type="number" value="0.35" step="0.01" min="0.01" max="5" style="width: 70px">
-      </div>
-      <div class="setting-row">
-        <div><div class="label">Email alerts</div><div class="desc">Slippage + outage notifications</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div><div class="label">SMS alerts</div><div class="desc">For critical events only</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div><div class="label">Push notifications</div><div class="desc">In-app real-time alerts</div></div>
-        <div class="toggle"></div>
-      </div>
-      <div class="setting-row">
-        <div><div class="label">Auto-cancel on breach</div><div class="desc">Requires SEBI algo registration (Phase 3)</div></div>
-        <div class="toggle"></div>
-      </div>
-      <div class="setting-row">
-        <div><div class="label">Theme</div><div class="desc">Terminal dark (default)</div></div>
-        <select><option>Terminal Dark</option><option>Soft Dark</option></select>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ============================================================
-   TRADEGUARD — APPLICATION CORE
-   Architecture: Router + Store + UI service + Modules
-   ============================================================ */
-
-/* ---------- 1. UTILITIES ---------- */
-const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
-const fmtINR = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
-const fmtPrice = (n) => n >= 100000 ? '₹' + Math.round(n).toLocaleString('en-IN') : '₹' + n.toFixed(2);
-
-const debounce = (fn, ms = 100) => {
-  let t;
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-};
-
-const rand = (min, max) => min + Math.random() * (max - min);
-const randInt = (min, max) => Math.floor(rand(min, max + 1));
-const pick = (arr) => arr[randInt(0, arr.length - 1)];
-
-/* ---------- 2. STORE (shared state) ---------- */
-const Store = (() => {
-  const state = {
-    currentView: 'dashboard',
-    outcomeHistory: [],
-    successCount: 0,
-    failCount: 0,
-    notifications: [
-      { type: 'alert', title: '⛔ Slippage breached on RELIANCE', desc: '0.42% > 0.35% tolerance — auto-cancel triggered', time: '2 min ago' },
-      { type: 'warn', title: '⚠ High volatility window ahead', desc: 'RBI policy announcement in 15 min — expect elevated slippage', time: '8 min ago' },
-      { type: 'info', title: '📊 Weekly execution report ready', desc: 'Your avg slippage this week: 0.16% (vs 0.19% last week)', time: '1 hr ago' },
-    ],
-    outage: {
-      ZERODHA: { up: true, lastPing: Date.now(), latency: 62 },
-      GROWW: { up: true, lastPing: Date.now(), latency: 88 },
-      COINDCX: { up: true, lastPing: Date.now(), latency: 110 },
-    },
-  };
-  return {
-    get: (key) => state[key],
-    set: (key, val) => { state[key] = val; },
-    push: (key, val) => { state[key].push(val); },
-  };
-})();
-
-/* ---------- 3. UI SERVICE ---------- */
-const UI = {
-  toast(msg) {
-    const t = $('#toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(t._timer);
-    t._timer = setTimeout(() => t.classList.remove('show'), 2200);
-  },
-
-  notify(type, title, desc) {
-    const notifications = Store.get('notifications');
-    notifications.unshift({ type, title, desc, time: 'just now' });
-    if (notifications.length > 15) notifications.pop();
-    this.renderNotifications();
-  },
-
-  renderNotifications() {
-    const notifications = Store.get('notifications');
-    $('#notifBody').innerHTML = notifications.map(n => `
-      <div class="notif-item ${n.type}">
-        <div class="icon-circle">${n.type === 'alert' ? '⚠' : n.type === 'warn' ? '!' : 'i'}</div>
-        <div class="notif-body">
-          <div class="notif-title">${n.title}</div>
-          <div class="notif-desc">${n.desc}</div>
-          <div class="notif-time">${n.time}</div>
-        </div>
-      </div>
-    `).join('');
-    const alertCount = notifications.filter(n => n.type === 'alert').length;
-    $('#notifCount').textContent = alertCount || notifications.length;
-  },
-
-  openNotif() {
-    $('#notifPanel').classList.add('show');
-    $('#notifOverlay').classList.add('show');
-  },
-  closeNotif() {
-    $('#notifPanel').classList.remove('show');
-    $('#notifOverlay').classList.remove('show');
-  },
-
-  openSettings() { $('#settingsModal').classList.add('show'); },
-  closeSettings() { $('#settingsModal').classList.remove('show'); },
-};
-
-/* ---------- 4. ROUTER ---------- */
-const Router = (() => {
-  const views = new Map();
-  let current = null;
-
-  return {
-    register(name, { crumb, title, onEnter, onExit }) {
-      views.set(name, { crumb, title, onEnter, onExit });
-    },
-
-    async navigate(name) {
-      if (current === name) return;
-      const prev = views.get(current);
-      if (prev?.onExit) { try { prev.onExit(); } catch (e) { console.error('onExit error:', e); } }
-
-      $$('.view').forEach(v => v.classList.toggle('active', v.dataset.view === name));
-      $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
-
-      const view = views.get(name);
-      if (!view) return;
-
-      $('#crumb').textContent = view.crumb;
-      $('#pageName').textContent = view.title;
-      $('#viewContainer').scrollTop = 0;
-      $('#sidebar').classList.remove('open');
-
-      Store.set('currentView', name);
-      current = name;
-      window.location.hash = '#' + name;
-
-      if (view.onEnter) {
-        try { await view.onEnter(); } catch (e) { console.error('onEnter error:', e); }
-      }
-    },
-
-    init() {
-      $$('.nav-item').forEach(btn => {
-        btn.addEventListener('click', () => this.navigate(btn.dataset.view));
-      });
-
-      window.addEventListener('hashchange', () => {
-        const hash = window.location.hash.slice(1);
-        if (hash && hash !== current) this.navigate(hash);
-      });
-    }
-  };
-})();
-
-/* ---------- 5. MODULES ---------- */
-
-/* ----- 5a. CLOCK ----- */
-const Clock = (() => {
-  let interval;
-  const tick = () => {
-    $('#clock').textContent = new Date().toLocaleTimeString('en-IN', { hour12: false });
-  };
-  return {
-    start() { tick(); interval = setInterval(tick, 1000); },
-    stop() { clearInterval(interval); }
-  };
-})();
-
-/* ----- 5b. HOLDINGS ----- */
-const Holdings = (() => {
-  let data = [
-    { name: 'RELIANCE', apiSym: 'RELIANCE', sub: 'NSE equity', src: 'zerodha', qty: 120, avg: 2812.40 },
-    { name: 'HDFC BANK', apiSym: 'HDFCBANK', sub: 'NSE equity', src: 'zerodha', qty: 80, avg: 1624.00 },
-    { name: 'NIFTY 24500 CE', apiSym: 'NIFTY 24500 CE', sub: 'F&O · Aug expiry', src: 'zerodha', qty: 75, avg: 112.30 },
-    { name: 'Parag Parikh Flexi Cap', apiSym: 'Parag Parikh Flexi Cap', sub: 'Direct growth', src: 'groww', qty: 1240.6, avg: 68.20 },
-    { name: 'Nippon India Small Cap', apiSym: 'Nippon India Small Cap', sub: 'Direct growth', src: 'groww', qty: 610.2, avg: 182.40 },
-    { name: 'BTC', apiSym: 'BTC', sub: 'Spot', src: 'coindcx', qty: 0.084, avg: 5620000 },
-    { name: 'ETH', apiSym: 'ETH', sub: 'Spot', src: 'coindcx', qty: 1.12, avg: 268400 },
-  ];
-  const labels = { zerodha: 'ZERODHA', groww: 'GROWW', coindcx: 'COINDCX' };
-
-  let isFetching = false;
-  let livePrices = {};
-
-  const fetchLivePrices = async () => {
-    if (isFetching) return;
-    isFetching = true;
-    try {
-      const symbols = data.map(d => d.apiSym).join(',');
-      const res = await fetch(`/api/market-data?symbols=${encodeURIComponent(symbols)}`);
-      const json = await res.json();
-      livePrices = json.data || {};
-      render(); // re-render with new data
-    } catch (e) {
-      console.error('Failed to fetch live prices', e);
-    } finally {
-      isFetching = false;
-    }
-  };
-
-  const render = () => {
-    $('#holdingsBody').innerHTML = data.map(h => {
-      let ltp = h.avg; // fallback
-      if (livePrices[h.apiSym] && livePrices[h.apiSym].price) {
-        ltp = livePrices[h.apiSym].price;
-      }
-      
-      const pnl = (ltp - h.avg) * h.qty;
-      const pnlPct = ((ltp - h.avg) / h.avg) * 100;
-      
-      // format for display
-      const qtyStr = typeof h.qty === 'number' && h.qty % 1 !== 0 ? h.qty.toFixed(2) : h.qty;
-      
-      return `
-        <tr>
-          <td><div class="asset-name">${h.name}</div><div class="asset-sub">${h.sub}</div></td>
-          <td><span class="badge ${h.src}">${labels[h.src]}</span></td>
-          <td class="mono">${qtyStr}</td>
-          <td class="mono">${fmtPrice(h.avg)}</td>
-          <td class="mono">${livePrices[h.apiSym] ? fmtPrice(ltp) : 'Loading...'}</td>
-          <td class="mono ${pnl >= 0 ? 'up' : 'down'}">
-            ${pnl >= 0 ? '+' : '−'}₹${Math.abs(pnl).toLocaleString('en-IN', {maximumFractionDigits:0})} (${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%)
-          </td>
-        </tr>
-      `;
-    }).join('');
-    
-    // Fetch live prices if we haven't yet
-    if (Object.keys(livePrices).length === 0 && !isFetching) {
-      fetchLivePrices();
-    }
-  };
-
-  return { render };
-})();
-
-/* ----- 5c. VERIFICATION ----- */
-const Verification = (() => {
-  const brokers = ['ZERODHA', 'GROWW', 'COINDCX'];
-  const symbols = ['RELIANCE', 'HDFCBANK', 'TCS', 'INFY', 'EUR/USD', 'BTC', 'SBIN'];
-  let fills = [];
-  let basePrices = {};
-
-  const fetchBasePrices = async () => {
-    try {
-      const res = await fetch(`/api/market-data?symbols=${encodeURIComponent(symbols.join(','))}`);
-      const json = await res.json();
-      basePrices = json.data || {};
-    } catch (e) {
-      console.error('Failed to fetch verification prices', e);
-    }
-  };
-
-  const generateFills = (n) => Array.from({ length: n }, () => {
-    const broker = pick(brokers);
-    const sym = pick(symbols);
-    // Use real base price if available, else random fallback
-    const refPrice = (basePrices[sym] && basePrices[sym].price) ? basePrices[sym].price : rand(500, 3500);
-    const roll = Math.random();
-    const devPct = roll < 0.65 ? rand(0, 0.06) : roll < 0.9 ? rand(0.06, 0.21) : rand(0.25, 0.75);
-    return { broker, sym, refPrice, fillPrice: refPrice * (1 + devPct / 100), devPct };
-  });
-
-  const flagFor = (d) =>
-    d < 0.06 ? { cls: 'flag-ok', label: 'OK' } :
-    d < 0.25 ? { cls: 'flag-warn', label: 'MILD' } :
-    { cls: 'flag-bad', label: 'FLAG' };
-
-  const run = async () => {
-    if (Object.keys(basePrices).length === 0) {
-      await fetchBasePrices();
-      fills = generateFills(28); // regenerate with real prices
-    }
-
-    const feed = $('#feedList');
-    feed.innerHTML = '';
-    let totalDev = 0;
-    const perBroker = Object.fromEntries(brokers.map(b => [b, { sum: 0, count: 0 }]));
-
-    fills.forEach((f, idx) => {
-      setTimeout(() => {
-        const flag = flagFor(f.devPct);
-        const row = document.createElement('div');
-        row.className = 'feed-row';
-        row.innerHTML = `
-          <div>${f.broker}</div>
-          <div class="sym">${f.sym}</div>
-          <div>₹${f.refPrice.toFixed(2)}</div>
-          <div>₹${f.fillPrice.toFixed(2)}</div>
-          <div class="dev ${flag.cls}">${f.devPct.toFixed(2)}%</div>
-        `;
-        feed.prepend(row);
-
-        totalDev += f.devPct;
-        perBroker[f.broker].sum += f.devPct;
-        perBroker[f.broker].count++;
-
-        if (idx === fills.length - 1) {
-          const avgDev = totalDev / fills.length;
-          const score = Math.max(0, Math.min(100, 100 - avgDev * 140));
-          $('#scoreValue').textContent = score.toFixed(1);
-          $('#scoreNote').textContent = `avg deviation ${avgDev.toFixed(3)}% across ${fills.length} fills`;
-
-          $('#brokerBars').innerHTML = brokers.map(b => {
-            const d = perBroker[b];
-            const avg = d.count ? d.sum / d.count : 0;
-            const barScore = Math.max(4, Math.min(100, 100 - avg * 140));
-            return `
-              <div class="score-bar-row">
-                <div class="name">${b}</div>
-                <div class="score-bar-track"><div class="score-bar-fill" style="width: ${barScore}%"></div></div>
-                <div class="n">${avg.toFixed(3)}%</div>
-              </div>
-            `;
-          }).join('');
+    <script>
+        // ROUTING
+        function nav(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+            const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+            if(navItem) {
+                navItem.classList.add('active');
+                document.getElementById('page-title').textContent = navItem.textContent;
+            }
         }
-      }, idx * 55);
-    });
-  };
-
-  const reset = () => {
-    fills = generateFills(28);
-    $('#feedList').innerHTML = '<div class="run-note" style="padding: 20px 0;">No fills verified yet — press Run verification.</div>';
-    $('#scoreValue').textContent = '—';
-    $('#scoreNote').textContent = "Run verification to score last session's fills";
-    $('#brokerBars').innerHTML = '';
-    $('#runNote').textContent = `${fills.length} simulated fills queued`;
-  };
-
-  return {
-    init() {
-      // pre-fetch prices so they are ready
-      fetchBasePrices().then(() => {
-        fills = generateFills(28);
-        $('#runNote').textContent = `${fills.length} real-price simulated fills queued`;
-      });
-      fills = generateFills(28); // initial fallback
-      
-      $('#runBtn').addEventListener('click', () => {
-        $('#runNote').textContent = 'verifying against independent feed...';
-        run();
-        $('#runNote').textContent = `${fills.length} fills verified`;
-      });
-      $('#resetBtn').addEventListener('click', reset);
-    }
-  };
-})();
-
-/* ----- 5d. PARTIAL-FILL MONITOR ----- */
-const PartialFill = (() => {
-  const refs = {
-    broker: $('#pfBroker'),
-    symbol: $('#pfSymbol'),
-    side: $('#pfSide'),
-    orderType: $('#pfOrderType'),
-    qty: $('#pfQty'),
-    refPrice: $('#pfRefPrice'),
-    tolPct: $('#pfTolPct'),
-    runBtn: $('#pfRunBtn')
-  };
-
-  const getRef = () => { const v = parseFloat(refs.refPrice.value); return v > 0 ? v : 0; };
-  const getSymbol = () => (refs.symbol.value || '').trim().toUpperCase() || 'RELIANCE';
-
-  const setStatus = (text, className) => {
-    $('#pfStatus').textContent = text;
-    $('#pfStatus').className = 'status ' + className;
-  };
-
-  const updateHistory = (outcomeText, success) => {
-    const h = Store.get('outcomeHistory') || [];
-    h.unshift(`<span class="history-item ${success ? 'success' : 'fail'}" style="margin-right: 8px;">${success ? '✅' : '⚠️'} ${outcomeText}</span>`);
-    if (h.length > 5) h.pop();
-    Store.set('outcomeHistory', h);
-    $('#historyList').innerHTML = h.join('');
-  };
-
-  const simulate = async () => {
-    if (refs.runBtn.disabled) return;
-    refs.runBtn.disabled = true;
-    refs.runBtn.textContent = 'Simulating...';
-
-    const payload = {
-      broker: refs.broker.value,
-      symbol: refs.symbol.value,
-      side: refs.side.value,
-      order_type: refs.orderType.value,
-      qty: parseFloat(refs.qty.value) || 0,
-      target_price: parseFloat(refs.refPrice.value) || 0,
-      max_slippage: parseFloat(refs.tolPct.value) || 0
-    };
-
-    try {
-      const res = await fetch('/api/simulate-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      
-      $('#pfIdleState').style.display = 'none';
-      $('#pfResultCard').style.display = 'flex';
-
-      const order = data.order;
-      const ver = data.verification;
-      const fills = data.fills || [];
-
-      const reqQty = order.requested_quantity.toLocaleString('en-IN');
-      const execQty = ver.executed_quantity.toLocaleString('en-IN');
-      const pausedQty = ver.remaining_quantity.toLocaleString('en-IN');
-      
-      $('#pfResBroker').textContent = order.broker;
-      $('#pfResReqQty').textContent = reqQty;
-      $('#pfResExecQty').textContent = execQty;
-      $('#pfResPausedQty').textContent = pausedQty;
-      $('#pfResTarget').textContent = '₹' + order.target_price.toFixed(2);
-      $('#pfResAvg').textContent = '₹' + ver.average_execution_price.toFixed(2);
-      
-      const slipStr = ver.actual_slippage.toFixed(3) + '%';
-      $('#pfResSlippage').textContent = slipStr;
-      $('#pfResMaxSlippage').textContent = ver.max_allowed_slippage.toFixed(3) + '%';
-      
-      $('#pfResultReason').textContent = ver.verification_status === 'SLIPPAGE LIMIT EXCEEDED' 
-        ? `Reason: Actual slippage of ${slipStr} exceeded the allowed limit of ${ver.max_allowed_slippage}%` 
-        : 'Reason: Execution within slippage tolerance.';
-      
-      $('#pfResultAction').textContent = ver.action_taken;
-
-      if (ver.verification_status === 'SLIPPAGE LIMIT EXCEEDED' || order.status === 'PAUSED') {
-        setStatus('SLIPPAGE LIMIT EXCEEDED', 'cancelled');
-        $('#pfResultAlert').textContent = `⚠️ SLIPPAGE LIMIT EXCEEDED!`;
-        $('#pfResultAlert').style.backgroundColor = 'rgba(229, 90, 90, 0.15)';
-        $('#pfResultAlert').style.color = 'var(--red)';
-        updateHistory(`${order.symbol} ${order.side} Paused`, false);
-      } else {
-        setStatus('EXECUTED', 'complete');
-        $('#pfResultAlert').textContent = `✅ Order Executed Successfully!`;
-        $('#pfResultAlert').style.backgroundColor = 'rgba(61, 217, 196, 0.15)';
-        $('#pfResultAlert').style.color = 'var(--cyan)';
-        updateHistory(`${order.symbol} ${order.side} Executed`, true);
-      }
-      
-      // Render Fill Audit
-      const fillAuditHtml = fills.map((f, i) => `
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
-          <span><strong>Fill ${i+1}</strong></span>
-          <span class="mono" style="color:var(--text-dim);">${f.timestamp.split('T')[1].substring(0,8)}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; padding-bottom:6px;">
-          <span>Qty: <span class="mono">${f.fill_quantity.toLocaleString('en-IN')}</span></span>
-          <span>Price: <span class="mono">₹${f.fill_price.toFixed(2)}</span></span>
-        </div>
-      `).join('');
-      $('#pfFillAuditList').innerHTML = fillAuditHtml || '<div>No fills generated.</div>';
-      
-      fetchHistory();
-      
-    } catch (e) {
-      console.error('Simulation failed', e);
-      setStatus('ERROR', 'cancelled');
-    } finally {
-      refs.runBtn.disabled = false;
-      refs.runBtn.textContent = '▶ Execute Order';
-    }
-  };
-  
-  const fetchHistory = async () => {
-    try {
-      const res = await fetch('/api/execution-history');
-      const data = await res.json();
-      const hist = data.history || [];
-      if (hist.length > 0) {
-        $('#historyTableBody').innerHTML = hist.map(h => {
-          const t = new Date(h.created_at).toLocaleTimeString('en-IN');
-          const statusCls = h.status === 'PAUSED' ? 'flag-warn' : 'flag-ok';
-          return `
-            <tr>
-              <td class="mono" style="font-size:11px; color:var(--text-dim);">${t}</td>
-              <td>${h.broker}</td>
-              <td class="mono">${h.symbol}</td>
-              <td>${h.side}</td>
-              <td class="num mono">${h.requested_quantity ? h.requested_quantity.toLocaleString('en-IN') : '—'}</td>
-              <td class="num mono">${h.executed_quantity ? h.executed_quantity.toLocaleString('en-IN') : '—'}</td>
-              <td class="num mono">${h.average_execution_price ? '₹'+h.average_execution_price.toFixed(2) : '—'}</td>
-              <td class="num mono">${h.actual_slippage !== undefined ? h.actual_slippage.toFixed(3)+'%' : '—'}</td>
-              <td><span class="${statusCls}" style="font-weight:600; font-size:10px;">${h.status}</span></td>
-            </tr>
-          `;
-        }).join('');
-      }
-    } catch(e) {
-      console.error('Failed to fetch history', e);
-    }
-  };
-
-  return {
-    init() {
-      const fetchSymbolPrice = async () => {
-        const sym = getSymbol();
-        if (!sym) return;
-        try {
-          const res = await fetch(`/api/market-data?symbols=${encodeURIComponent(sym)}`);
-          const json = await res.json();
-          if (json.data && json.data[sym] && json.data[sym].price) {
-            refs.refPrice.value = json.data[sym].price.toFixed(2);
-          }
-        } catch (e) {
-          console.error('Failed to fetch symbol price', e);
-        }
-      };
-
-      refs.symbol.addEventListener('input', () => { refs.symbol.value = refs.symbol.value.toUpperCase(); });
-      refs.symbol.addEventListener('blur', fetchSymbolPrice);
-      fetchSymbolPrice(); // Fetch initial price for default symbol
-      fetchHistory(); // Fetch initial history
-      // Buttons
-      refs.runBtn.addEventListener('click', simulate);
-      
-      Store.set('outcomeHistory', []);
-    },
-
-    onEnter() {}
-  };
-})();
-
-/* ----- 5e. VOLATILITY ----- */
-const Volatility = (() => {
-  let interval;
-
-  const update = () => {
-    const vol = Math.min(75, Math.max(15, rand(15, 75)));
-    const arc = $('#volatilityArc');
-    const circumference = 188.5;
-    arc.style.strokeDashoffset = circumference - (vol / 100) * circumference;
-    arc.style.stroke = vol < 30 ? '#6FCF7A' : vol < 55 ? '#E8A33D' : '#E55A5A';
-    $('#volatilityPct').textContent = Math.round(vol) + '%';
-
-    let status, vix, phase;
-    if (vol < 30) { status = '🟢 Low Volatility'; vix = '12-18'; phase = 'Stable Market'; }
-    else if (vol < 55) { status = '🟡 Moderate Volatility'; vix = '18-28'; phase = 'Normal Trading'; }
-    else { status = '🔴 High Volatility'; vix = '28-40'; phase = 'Turbulent Market'; }
-    $('#volatilityStatus').textContent = status;
-    $('#vixEquivalent').textContent = vix;
-    $('#marketPhase').textContent = phase;
-
-    const sp = Math.min(85, Math.max(10, vol * 0.75 + rand(0, 15)));
-    $('#slippageProbValue').textContent = Math.round(sp) + '%';
-    $('#expectedSlippage').textContent = (sp / 100 * 0.12 + 0.02).toFixed(3) + '%';
-
-    const bar = $('#slippageBar');
-    bar.style.width = Math.min(100, sp) + '%';
-    bar.style.background = sp < 30 ? '#6FCF7A' : sp < 55 ? '#E8A33D' : '#E55A5A';
-    $('#slippageBarLabel').textContent = Math.round(sp) + '%';
-
-    const tips = [];
-    if (vol > 55) {
-      tips.push('High volatility window — consider <strong>limit orders</strong> instead of market');
-      tips.push('Avg slippage on RELIANCE in this phase: <strong>0.42%</strong> (vs 0.18% baseline)');
-    } else if (vol > 30) {
-      tips.push('Moderate volatility — market orders acceptable for liquid names');
-      tips.push('Consider splitting large orders into 3-5 chunks');
-    } else {
-      tips.push('Stable market conditions — favourable for execution');
-      tips.push('Current expected slippage: <strong>0.08%</strong>');
-    }
-    tips.push('Avoid the first 5 min after open — 3.2× higher slippage historically');
-    $('#pretradeTips').innerHTML = tips.map(t => `<li>${t}</li>`).join('');
-  };
-
-  return {
-    start() { update(); interval = setInterval(update, 6000); },
-    stop() { clearInterval(interval); }
-  };
-})();
-
-/* ----- 5f. SCORECARD ----- */
-const Scorecard = (() => {
-  const data = [
-    { name: 'ZERODHA', tag: 'Equity · F&O', avgSlip: 0.14, fillRate: 99.2, outages: 1, latency: '62ms', trend: [3, 4, 3, 5, 4, 3, 2, 3, 2, 2] },
-    { name: 'GROWW', tag: 'Equity · MF', avgSlip: 0.22, fillRate: 98.1, outages: 3, latency: '88ms', trend: [5, 6, 5, 6, 7, 6, 5, 6, 5, 5] },
-    { name: 'COINDCX', tag: 'Crypto', avgSlip: 0.31, fillRate: 97.4, outages: 2, latency: '110ms', trend: [6, 7, 8, 7, 6, 7, 8, 7, 6, 7] },
-  ];
-
-  return {
-    render() {
-      const sorted = [...data].sort((a, b) => a.avgSlip - b.avgSlip);
-      $('#brokerCards').innerHTML = data.map(b => {
-        const rank = sorted.findIndex(x => x.name === b.name) + 1;
-        const rankLabel = rank === 1 ? '🥇 BEST' : rank === 2 ? '🥈' : '🥉';
-        const maxTrend = Math.max(...b.trend);
-        const w = 200, h = 30;
-        const points = b.trend.map((v, i) => `${(i / (b.trend.length - 1)) * w},${h - (v / maxTrend) * h}`).join(' ');
-
-        return `
-          <div class="broker-card">
-            <div class="rank ${rank === 1 ? 'gold' : ''}">${rankLabel} #${rank}</div>
-            <div class="broker-name">${b.name}</div>
-            <div class="broker-tag">${b.tag}</div>
-            <div class="metrics">
-              <div class="metric-row"><span class="k">Avg slippage (30d)</span><span class="v ${b.avgSlip < 0.2 ? 'up' : 'amber'}">${b.avgSlip.toFixed(2)}%</span></div>
-              <div class="metric-row"><span class="k">Fill rate</span><span class="v">${b.fillRate}%</span></div>
-              <div class="metric-row"><span class="k">Avg latency</span><span class="v">${b.latency}</span></div>
-              <div class="metric-row"><span class="k">Outages (30d)</span><span class="v ${b.outages > 2 ? 'down' : 'up'}">${b.outages}</span></div>
-            </div>
-            <div class="trend">
-              <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-                <polyline points="${points}" fill="none" stroke="#3DD9C4" stroke-width="1.5"/>
-              </svg>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  };
-})();
-
-/* ----- 5g. HEATMAP ----- */
-const Heatmap = (() => {
-  const times = ['09:15', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '15:30'];
-  const rows = ['ZERODHA', 'GROWW', 'COINDCX'];
-
-  const colorFor = (slip) =>
-    slip < 0.12 ? '#6FCF7A' :
-    slip < 0.20 ? '#A8D46C' :
-    slip < 0.28 ? '#E8C63D' :
-    slip < 0.38 ? '#E8A33D' : '#E55A5A';
-
-  return {
-    render() {
-      const grid = $('#heatmap');
-      grid.innerHTML = '';
-
-      grid.appendChild(Object.assign(document.createElement('div'), { className: 'cell-header' }));
-      times.forEach(t => {
-        const el = document.createElement('div');
-        el.className = 'cell-header';
-        el.textContent = t;
-        grid.appendChild(el);
-      });
-
-      rows.forEach(r => {
-        const label = document.createElement('div');
-        label.className = 'row-label';
-        label.textContent = r;
-        grid.appendChild(label);
-
-        times.forEach((t, i) => {
-          const edgeFactor = (i === 0 || i === times.length - 1) ? 1.5 : 1;
-          const brokerFactor = r === 'COINDCX' ? 1.4 : r === 'GROWW' ? 1.1 : 1.0;
-          const slip = rand(0.08, 0.33) * edgeFactor * brokerFactor;
-          const cell = document.createElement('div');
-          cell.className = 'cell';
-          cell.style.background = colorFor(slip);
-          cell.textContent = slip.toFixed(2);
-          cell.title = `${r} at ${t}: ${slip.toFixed(3)}%`;
-          grid.appendChild(cell);
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.addEventListener('click', (e) => nav(e.target.dataset.view));
         });
-      });
-    }
-  };
-})();
 
-/* ----- 5h. JOURNAL ----- */
-const Journal = (() => {
-  const brokers = ['ZERODHA', 'GROWW', 'COINDCX'];
-  const symbols = ['RELIANCE', 'HDFCBANK', 'TCS', 'INFY', 'EUR/USD', 'BTC/INR', 'NIFTY FUT', 'SBIN'];
+        // MODAL
+        function openModal() { document.getElementById('modal-overlay').classList.add('active'); }
+        function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
 
-  return {
-    render() {
-      const rows = [];
-      let totalCost = 0, totalSlip = 0, worst = 0;
+        // LIVE PRICE SYNC
+        const elSym = document.getElementById('trade-symbol');
+        const elPrice = document.getElementById('trade-price');
+        const elCmp = document.getElementById('preview-cmp');
+        const elRef = document.getElementById('preview-ref');
+        const elLimit = document.getElementById('preview-limit');
+        const elSlipInput = document.getElementById('trade-slip');
 
-      for (let i = 0; i < 24; i++) {
-        const broker = pick(brokers);
-        const sym = pick(symbols);
-        const expected = rand(500, 3500);
-        const orderValue = rand(5000, 60000);
-        const qty = Math.max(1, Math.round(orderValue / expected));
+        elPrice.addEventListener('input', () => { elRef.textContent = '₹' + parseFloat(elPrice.value||0).toFixed(2); });
+        elSlipInput.addEventListener('input', () => { elLimit.textContent = parseFloat(elSlipInput.value||0).toFixed(2) + '%'; });
 
-        const roll = Math.random();
-        const devPct = roll < 0.65 ? rand(0, 0.04) : roll < 0.92 ? rand(0.04, 0.14) : rand(0.15, 0.40);
+        async function fetchPrice() {
+            const sym = elSym.value.trim();
+            if(!sym) return;
+            try {
+                const res = await fetch('/api/market-data?symbols=' + encodeURIComponent(sym));
+                const json = await res.json();
+                if(json.data && json.data[sym]) {
+                    const p = json.data[sym].price;
+                    elCmp.textContent = '₹' + p.toFixed(2);
+                    elPrice.value = p.toFixed(2);
+                    elRef.textContent = '₹' + p.toFixed(2);
+                }
+            } catch(e) { console.error(e); }
+        }
+        elSym.addEventListener('blur', fetchPrice);
+        fetchPrice();
 
-        const filled = expected * (1 + devPct / 100);
-        const cost = (filled - expected) * qty;
-        totalCost += cost;
-        totalSlip += devPct;
-        if (devPct > worst) worst = devPct;
+        // REVIEW BUTTON
+        document.getElementById('btn-review').addEventListener('click', () => {
+            document.getElementById('mod-broker').textContent = document.getElementById('trade-broker').value;
+            document.getElementById('mod-sym').textContent = document.getElementById('trade-symbol').value.toUpperCase();
+            document.getElementById('mod-side').textContent = document.getElementById('trade-side').value + ' ' + document.getElementById('trade-type').value;
+            document.getElementById('mod-qty').textContent = Number(document.getElementById('trade-qty').value).toLocaleString('en-IN');
+            document.getElementById('mod-price').textContent = '₹' + parseFloat(document.getElementById('trade-price').value).toFixed(2);
+            document.getElementById('mod-slip').textContent = parseFloat(document.getElementById('trade-slip').value).toFixed(2) + '%';
+            openModal();
+        });
 
-        const mins = 9 * 60 + 15 + i * 22;
-        const time = `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+        // EXECUTION
+        let currentOrderData = null;
+        let orderHistory = [];
 
-        const flag = devPct < 0.04 ? 'ok' : devPct < 0.15 ? 'mild' : 'bad';
-        const flagTxt = flag === 'ok' ? 'OK' : flag === 'mild' ? 'MILD' : 'FLAG';
+        async function executeOrder() {
+            const btn = document.getElementById('btn-confirm-exec');
+            btn.disabled = true;
+            btn.textContent = 'EXECUTING...';
 
-        rows.push({ time, sym, broker, expected, filled, devPct, cost, qty, flag, flagTxt });
-      }
+            const payload = {
+                broker: document.getElementById('trade-broker').value,
+                symbol: document.getElementById('trade-symbol').value.toUpperCase(),
+                side: document.getElementById('trade-side').value,
+                order_type: document.getElementById('trade-type').value,
+                qty: parseFloat(document.getElementById('trade-qty').value) || 0,
+                target_price: parseFloat(document.getElementById('trade-price').value) || 0,
+                max_slippage: parseFloat(document.getElementById('trade-slip').value) || 0
+            };
 
-      $('#jTotal').textContent = rows.length;
-      $('#jAvg').textContent = (totalSlip / rows.length).toFixed(3) + '%';
-      $('#jCost').textContent = '−₹' + Math.round(totalCost).toLocaleString('en-IN');
-      $('#jWorst').textContent = worst.toFixed(2) + '%';
+            try {
+                const res = await fetch('/api/simulate-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                currentOrderData = await res.json();
+                closeModal();
+                btn.disabled = false;
+                btn.textContent = 'CONFIRM & EXECUTE';
+                
+                renderMonitor();
+                nav('monitor');
+                refreshHistory();
+            } catch(e) {
+                console.error(e);
+                btn.disabled = false;
+                btn.textContent = 'ERROR - RETRY';
+            }
+        }
 
-      $('#journalBody').innerHTML = rows.map(r => `
-        <tr>
-          <td class="mono">${r.time}</td>
-          <td><div class="asset-name">${r.sym}</div><div class="asset-sub">${r.qty} qty</div></td>
-          <td><span class="badge ${r.broker.toLowerCase()}">${r.broker}</span></td>
-          <td class="mono">₹${r.expected.toFixed(2)}</td>
-          <td class="mono">₹${r.filled.toFixed(2)}</td>
-          <td class="mono ${r.flag === 'ok' ? 'up' : r.flag === 'mild' ? 'amber' : 'down'}">${r.devPct.toFixed(3)}%</td>
-          <td class="mono down">−₹${Math.round(r.cost).toLocaleString('en-IN')}</td>
-          <td><span class="flag-mini ${r.flag}">${r.flagTxt}</span></td>
-        </tr>
-      `).join('');
-    }
-  };
-})();
+        // RENDER MONITOR
+        function renderMonitor() {
+            if(!currentOrderData || currentOrderData.error) return;
+            document.getElementById('monitor-empty').style.display = 'none';
+            document.getElementById('monitor-active').style.display = 'block';
 
-/* ----- 5i. CALCULATOR ----- */
-const Calculator = (() => {
-  const compute = () => {
-    const trades = parseFloat($('#calcTrades').value) || 0;
-    const orderVal = parseFloat($('#calcOrderValue').value) || 0;
-    const slipPct = parseFloat($('#calcSlippage').value) || 0;
-    const monthly = trades * orderVal * (slipPct / 100);
-    const yearly = monthly * 12;
-    const fiveY = yearly * 5 * 1.08;
-    const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
-    $('#calcResult').textContent = fmt(yearly);
-    $('#calcMonthly').textContent = fmt(monthly);
-    $('#calcYearly').textContent = fmt(yearly);
-    $('#calc5y').textContent = fmt(fiveY);
-  };
+            const { order, verification, fills } = currentOrderData;
+            
+            document.getElementById('mon-broker').textContent = order.broker.toUpperCase();
+            document.getElementById('mon-title').textContent = `${order.side} ${order.requested_quantity.toLocaleString('en-IN')} ${order.symbol}`;
+            document.getElementById('mon-id').textContent = `Order #${order.id.split('-')[0].toUpperCase()}`;
+            
+            const badge = document.getElementById('mon-status');
+            badge.textContent = order.status;
+            badge.className = 'badge ' + (order.status === 'PAUSED' ? 'red' : 'green');
 
-  return {
-    init() {
-      $('#calcBtn').addEventListener('click', compute);
-      ['calcTrades', 'calcOrderValue', 'calcSlippage'].forEach(id =>
-        $('#' + id).addEventListener('input', compute)
-      );
-      compute();
-    }
-  };
-})();
+            document.getElementById('mon-req').textContent = order.requested_quantity.toLocaleString('en-IN');
+            document.getElementById('mon-exec').textContent = verification.executed_quantity.toLocaleString('en-IN');
+            document.getElementById('mon-rem').textContent = verification.remaining_quantity.toLocaleString('en-IN');
+            
+            const pct = (verification.executed_quantity / order.requested_quantity) * 100;
+            document.getElementById('mon-progress').style.width = pct + '%';
+            document.getElementById('mon-progress').style.background = order.status === 'PAUSED' ? 'var(--color-amber)' : 'var(--color-green)';
 
-/* ----- 5j. RISK ----- */
-const Risk = (() => {
-  return {
-    render() {
-      const sectors = [
-        { name: 'Banking & Finance', pct: 34, color: '#3DD9C4' },
-        { name: 'Energy', pct: 18, color: '#E8A33D' },
-        { name: 'IT Services', pct: 16, color: '#6FCF7A' },
-        { name: 'Crypto', pct: 9, color: '#7C8894' },
-        { name: 'Pharma', pct: 12, color: '#E55A5A' },
-        { name: 'Others', pct: 11, color: '#4C5560' },
-      ];
+            document.getElementById('mon-target').textContent = '₹' + order.target_price.toFixed(2);
+            document.getElementById('mon-avg').textContent = '₹' + verification.average_execution_price.toFixed(2);
+            document.getElementById('mon-max-slip').textContent = verification.max_allowed_slippage.toFixed(3) + '%';
+            document.getElementById('mon-act-slip').textContent = verification.actual_slippage.toFixed(3) + '%';
+            document.getElementById('mon-act-slip').className = 'kpi-value ' + (order.status === 'PAUSED' ? 'text-red' : 'text-green');
 
-      $('#sectorBar').innerHTML = sectors.map(s =>
-        `<div style="background: ${s.color}; width: ${s.pct}%">${s.pct}%</div>`
-      ).join('');
+            const vStat = document.getElementById('mon-ver-status');
+            const vReas = document.getElementById('mon-ver-reason');
+            if(verification.verification_status === 'SLIPPAGE LIMIT EXCEEDED') {
+                vStat.textContent = '⚠ SLIPPAGE LIMIT EXCEEDED';
+                vStat.style.color = 'var(--color-red)';
+                vReas.textContent = `Actual slippage of ${verification.actual_slippage.toFixed(3)}% exceeded the allowed limit of ${verification.max_allowed_slippage}%.`;
+            } else {
+                vStat.textContent = '✓ VERIFIED WITHIN LIMITS';
+                vStat.style.color = 'var(--color-green)';
+                vReas.textContent = `Execution completed successfully within the ${verification.max_allowed_slippage}% threshold.`;
+            }
+            document.getElementById('mon-ver-action').textContent = verification.action_taken;
 
-      $('#sectorLegend').innerHTML = sectors.map(s => `
-        <div class="item">
-          <span class="key"><span class="swatch" style="background: ${s.color}"></span>${s.name}</span>
-          <span class="val">${s.pct}%</span>
-        </div>
-      `).join('');
+            // Fill Audit Timeline
+            let tlHtml = `<div class="timeline-item">
+                <div class="timeline-time">${new Date(order.created_at).toLocaleTimeString('en-IN')}</div>
+                <div class="timeline-content">ORDER CREATED <span class="mono">Requested ${order.requested_quantity.toLocaleString('en-IN')} shares</span></div>
+            </div>`;
 
-      const brokerExp = [
-        { name: 'Zerodha', pct: 66, color: '#E8804D' },
-        { name: 'Groww', pct: 25, color: '#7ED957' },
-        { name: 'CoinDCX', pct: 9, color: '#3DD9C4' },
-      ];
+            fills.forEach((f, i) => {
+                const t = new Date(f.timestamp).toLocaleTimeString('en-IN');
+                tlHtml += `<div class="timeline-item">
+                    <div class="timeline-time">${t}</div>
+                    <div class="timeline-content text-cyan">FILL RECEIVED (0${i+1}) <span class="mono">${f.fill_quantity.toLocaleString('en-IN')} @ ₹${f.fill_price.toFixed(2)}</span></div>
+                </div>`;
+            });
 
-      $('#brokerBar').innerHTML = brokerExp.map(b =>
-        `<div style="background: ${b.color}; width: ${b.pct}%; color: #06201C">${b.pct}%</div>`
-      ).join('');
+            tlHtml += `<div class="timeline-item">
+                <div class="timeline-time">SLIPPAGE CHECK</div>
+                <div class="timeline-content ${order.status === 'PAUSED' ? 'text-red' : 'text-green'}">
+                    ${verification.verification_status} 
+                    <span class="mono">${verification.action_taken}</span>
+                </div>
+            </div>`;
+            
+            document.getElementById('mon-timeline').innerHTML = tlHtml;
+        }
 
-      $('#brokerLegend').innerHTML = brokerExp.map(b => `
-        <div class="item">
-          <span class="key"><span class="swatch" style="background: ${b.color}"></span>${b.name}</span>
-          <span class="val">${b.pct}%</span>
-        </div>
-      `).join('');
+        // HISTORY & DASHBOARD SYNC
+        async function refreshHistory() {
+            try {
+                const res = await fetch('/api/execution-history');
+                const data = await res.json();
+                orderHistory = data.history || [];
+                
+                // Update Dashboard
+                let totalOrders = orderHistory.length;
+                let execOrders = 0;
+                let pausedOrders = 0;
+                let sumSlip = 0;
+                let breaches = 0;
 
-      $('#riskWarnings').innerHTML = `
-        <div class="warning-item"><span class="icon">⚠️</span><span><strong style="color: var(--amber)">34% in Banking & Finance</strong> across all brokers — 2× the recommended single-sector limit of 15%</span></div>
-        <div class="warning-item"><span class="icon">⚠️</span><span><strong style="color: var(--amber)">66% of capital on Zerodha</strong> — a single-broker outage would affect most of your portfolio</span></div>
-        <div class="warning-item"><span class="icon">🟢</span><span>Crypto exposure at 9% — within safe threshold</span></div>
-      `;
-    }
-  };
-})();
+                let tbody = '';
+                let vbody = '';
+                let opts = '<option value="">Select an order...</option>';
 
-/* ----- 5k. OUTAGE ----- */
-const Outage = (() => {
-  const brokerPositions = {
-    ZERODHA: [
-      { symbol: 'RELIANCE', qty: 120, value: 352812, type: 'EQ' },
-      { symbol: 'HDFCBANK', qty: 80, value: 127884, type: 'EQ' },
-      { symbol: 'NIFTY 24500 CE', qty: 75, value: 10110, type: 'F&O' },
-      { symbol: 'SBIN', qty: 200, value: 158400, type: 'EQ' },
-    ],
-    GROWW: [
-      { symbol: 'Parag Parikh Flexi Cap', qty: 1240.6, value: 88144, type: 'MF' },
-      { symbol: 'Nippon India Small Cap', qty: 610.2, value: 107964, type: 'MF' },
-    ],
-    COINDCX: [
-      { symbol: 'BTC', qty: 0.084, value: 494760, type: 'Crypto' },
-      { symbol: 'ETH', qty: 1.12, value: 307888, type: 'Crypto' },
-    ],
-  };
+                orderHistory.forEach(h => {
+                    if(h.status === 'EXECUTED') execOrders++;
+                    if(h.status === 'PAUSED') { pausedOrders++; breaches++; }
+                    if(h.actual_slippage !== undefined) sumSlip += h.actual_slippage;
 
-  const log = [
-    { time: '2 days ago', broker: 'GROWW', desc: 'Brief API delay during market open', duration: '2m 14s' },
-    { time: '5 days ago', broker: 'ZERODHA', desc: 'Order placement timeout', duration: '4m 02s' },
-    { time: '11 days ago', broker: 'COINDCX', desc: 'Websocket disconnect', duration: '1m 48s' },
-    { time: '18 days ago', broker: 'GROWW', desc: 'Login gateway unreachable', duration: '6m 31s' },
-  ];
+                    const t = new Date(h.created_at).toLocaleTimeString('en-IN');
+                    const statBadge = h.status === 'PAUSED' ? '<span class="badge amber">PAUSED</span>' : '<span class="badge green">EXECUTED</span>';
+                    const oid = h.id.split('-')[0].toUpperCase();
 
-  let interval;
+                    // Orders Table
+                    tbody += `<tr>
+                        <td class="mono text-muted">${t}</td>
+                        <td class="mono">#TG-${oid}</td>
+                        <td>${h.broker}</td>
+                        <td class="mono">${h.symbol}</td>
+                        <td>${h.side}</td>
+                        <td class="mono">${h.requested_quantity ? h.requested_quantity.toLocaleString() : '—'}</td>
+                        <td class="mono">${h.executed_quantity ? h.executed_quantity.toLocaleString() : '—'}</td>
+                        <td class="mono">${h.average_execution_price ? '₹'+h.average_execution_price.toFixed(2) : '—'}</td>
+                        <td class="mono">${h.actual_slippage !== undefined ? h.actual_slippage.toFixed(3)+'%' : '—'}</td>
+                        <td>${statBadge}</td>
+                    </tr>`;
 
-  const impactFor = (broker) => {
-    const positions = brokerPositions[broker] || [];
-    return {
-      count: positions.length,
-      value: positions.reduce((s, p) => s + p.value, 0),
-      positions
-    };
-  };
+                    // Verification Table
+                    vbody += `<tr>
+                        <td class="mono text-cyan">#TG-${oid}</td>
+                        <td><span class="badge ${h.verification_status === 'VERIFIED' ? 'green' : 'red'}">${h.verification_status || 'PENDING'}</span></td>
+                        <td class="mono">${h.actual_slippage !== undefined ? h.actual_slippage.toFixed(3)+'%' : '—'}</td>
+                        <td class="mono text-muted">${h.max_slippage !== undefined ? h.max_slippage.toFixed(3)+'%' : '—'}</td>
+                        <td class="mono">${h.action_taken || '—'}</td>
+                        <td><button class="btn btn-outline" style="padding:4px 8px; font-size:10px;" onclick="viewAudit('${h.id}')">AUDIT</button></td>
+                    </tr>`;
 
-  const render = () => {
-    const state = Store.get('outage');
-    const brokers = Object.keys(state);
+                    opts += `<option value="${h.id}">#TG-${oid} | ${h.side} ${h.symbol} | ${t}</option>`;
+                });
 
-    $('#outageGrid').innerHTML = brokers.map(b => {
-      const s = state[b];
-      const secAgo = Math.round((Date.now() - s.lastPing) / 1000);
-      const impact = impactFor(b);
-      const impactRows = impact.positions.map(p => `
-        <div class="impact-pos-row">
-          <span class="sym">${p.symbol}<span class="type">${p.type}</span></span>
-          <span class="amt">${fmtINR(p.value)}</span>
-        </div>
-      `).join('');
+                if(totalOrders > 0) {
+                    document.getElementById('dash-total-orders').textContent = totalOrders;
+                    document.getElementById('dash-executed').textContent = execOrders;
+                    document.getElementById('dash-paused').textContent = pausedOrders;
+                    document.getElementById('dash-breaches').textContent = breaches;
+                    const avgSlip = (sumSlip / totalOrders).toFixed(3);
+                    document.getElementById('dash-avg-slippage').textContent = avgSlip + '%';
+                    
+                    // hero meter
+                    document.querySelector('.meter-fill').style.width = (avgSlip / 0.10 * 100) + '%';
+                    document.querySelector('.meter-labels span:nth-child(2)').innerHTML = `Actual: <span class="text-cyan">${avgSlip}%</span>`;
 
-      return `
-        <div class="outage-card ${s.up ? '' : 'down'}">
-          <div class="top">
-            <span class="broker-name">${b}</span>
-            <span class="status-dot ${s.up ? 'up' : 'down'}"></span>
-          </div>
-          <div class="status-text">${s.up ? '● OPERATIONAL' : '● UNREACHABLE'}</div>
-          <div class="ping-info">
-            <span>Latency: ${s.latency}ms</span>
-            <span>Last ping: ${secAgo}s ago</span>
-          </div>
-          <div class="impact-panel">
-            <div class="impact-header">
-              <span class="lbl">⚠ At risk</span>
-              <span class="val">${fmtINR(impact.value)}</span>
-            </div>
-            ${impactRows}
-          </div>
-        </div>
-      `;
-    }).join('');
+                    document.getElementById('orders-tbody').innerHTML = tbody;
+                    document.getElementById('ver-tbody').innerHTML = vbody;
+                    document.getElementById('audit-select').innerHTML = opts;
+                }
+            } catch(e) { console.error(e); }
+        }
 
-    $('#outageLog').innerHTML = log.map(o => `
-      <div class="outage-log-row">
-        <span class="time">${o.time}</span>
-        <span class="broker">${o.broker}</span>
-        <span class="desc">${o.desc}</span>
-        <span class="duration">${o.duration}</span>
-      </div>
-    `).join('');
+        async function loadAuditForSelect() {
+            const id = document.getElementById('audit-select').value;
+            if(!id) return;
+            try {
+                const res = await fetch('/api/fill-audit/' + id);
+                const data = await res.json();
+                const fills = data.fills || [];
+                if(fills.length === 0) {
+                    document.getElementById('audit-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">No fills found for this order.</td></tr>';
+                    return;
+                }
+                document.getElementById('audit-tbody').innerHTML = fills.map((f, i) => `
+                    <tr>
+                        <td class="mono text-cyan">FILL-0${i+1}</td>
+                        <td class="mono text-muted">${new Date(f.timestamp).toLocaleTimeString('en-IN')}</td>
+                        <td class="mono">${f.fill_quantity.toLocaleString('en-IN')}</td>
+                        <td class="mono">₹${f.fill_price.toFixed(2)}</td>
+                        <td class="mono fw-500">${f.cumulative_quantity.toLocaleString('en-IN')}</td>
+                    </tr>
+                `).join('');
+            } catch(e) { console.error(e); }
+        }
 
-    updateBanner();
-  };
+        function viewAudit(id) {
+            document.getElementById('audit-select').value = id;
+            loadAuditForSelect();
+            nav('audit');
+        }
 
-  const updateBanner = () => {
-    const state = Store.get('outage');
-    const downBrokers = Object.keys(state).filter(b => !state[b].up);
-    const banner = $('#outageBanner');
-
-    if (downBrokers.length === 0) {
-      banner.classList.remove('show');
-      return;
-    }
-
-    let totalValue = 0, totalCount = 0;
-    downBrokers.forEach(b => {
-      const imp = impactFor(b);
-      totalValue += imp.value;
-      totalCount += imp.count;
-    });
-
-    $('#bannerTitle').textContent = `${downBrokers.join(' + ')} is UNREACHABLE`;
-    $('#bannerBody').innerHTML = `
-      <strong>${totalCount} open positions</strong> worth
-      <span class="num">${fmtINR(totalValue)}</span> are at risk on this broker.
-      Backup execution channel recommended.
-    `;
-    banner.classList.add('show');
-  };
-
-  const heartbeat = () => {
-    const state = Store.get('outage');
-    Object.keys(state).forEach(b => {
-      if (state[b].up) {
-        state[b].lastPing = Date.now();
-        state[b].latency = Math.max(30, state[b].latency + Math.round((Math.random() - 0.5) * 10));
-      }
-    });
-    render();
-  };
-
-  const simulateOutage = () => {
-    const state = Store.get('outage');
-    const candidates = Object.keys(state).filter(b => state[b].up);
-    if (candidates.length === 0) { UI.toast('All brokers already down'); return; }
-
-    const target = pick(candidates);
-    const impact = impactFor(target);
-
-    state[target].up = false;
-    state[target].latency = 0;
-    log.unshift({ time: 'just now', broker: target, desc: 'Simulated outage — API unreachable', duration: '—' });
-    render();
-
-    UI.notify('alert', `🔴 ${target} UNREACHABLE`, `${impact.count} positions worth ${fmtINR(impact.value)} at risk`);
-    UI.toast(`⚠ ${target} down — ${fmtINR(impact.value)} exposure`);
-
-    setTimeout(() => {
-      state[target].up = true;
-      state[target].latency = randInt(70, 130);
-      log.unshift({ time: 'just now', broker: target, desc: 'Restored — API responding normally', duration: '12s' });
-      UI.notify('info', `✅ ${target} restored`, `${impact.count} positions safe`);
-      render();
-    }, 12000);
-  };
-
-  return {
-    init() {
-      $('#simulateOutageBtn').addEventListener('click', simulateOutage);
-      $('#bannerDismissBtn').addEventListener('click', () => $('#outageBanner').classList.remove('show'));
-      $('#bannerSmsBtn').addEventListener('click', () => {
-        const down = Object.keys(Store.get('outage')).filter(b => !Store.get('outage')[b].up);
-        if (!down.length) return UI.toast('No active outage');
-        UI.notify('alert', '📱 SMS alert sent', `${down.join(', ')} unreachable — see notification for exposure`);
-        UI.toast('📱 SMS dispatched to +91-XXXXX-XXXXX');
-      });
-      $('#bannerCallBtn').addEventListener('click', () => {
-        const down = Object.keys(Store.get('outage')).filter(b => !Store.get('outage')[b].up);
-        if (!down.length) return UI.toast('No active outage');
-        UI.notify('warn', '📞 Auto-call initiated', `Voice alert ringing · ${down.join(', ')}`);
-        UI.toast('📞 Auto-call ringing +91-XXXXX-XXXXX');
-      });
-    },
-
-    startHeartbeat() { render(); interval = setInterval(heartbeat, 3000); },
-    stopHeartbeat() { clearInterval(interval); }
-  };
-})();
-
-/* ---------- 6. BOOTSTRAP ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  // Start always-on services
-  Clock.start();
-  Volatility.start();
-  Outage.startHeartbeat();
-
-  // Initialise interactive modules
-  Verification.init();
-  PartialFill.init();
-  Calculator.init();
-  Outage.init();
-
-  // Register views with lifecycle
-  Router.register('dashboard', {
-    crumb: 'Overview',
-    title: 'Unified Holdings',
-    onEnter() { Holdings.render(); }
-  });
-  Router.register('verification', {
-    crumb: 'Verification',
-    title: 'Fill Audit'
-  });
-  Router.register('partial-fill', {
-    crumb: 'Verification',
-    title: 'Partial-Fill Monitor',
-    onEnter() { PartialFill.onEnter(); }
-  });
-  Router.register('scorecard', {
-    crumb: 'Analytics',
-    title: 'Broker Scorecard',
-    onEnter() { Scorecard.render(); }
-  });
-  Router.register('heatmap', {
-    crumb: 'Analytics',
-    title: 'Performance Heatmap',
-    onEnter() { Heatmap.render(); }
-  });
-  Router.register('journal', {
-    crumb: 'Analytics',
-    title: 'Trade Journal',
-    onEnter() { Journal.render(); }
-  });
-  Router.register('calculator', {
-    crumb: 'Analytics',
-    title: 'Cost Calculator'
-  });
-  Router.register('risk', {
-    crumb: 'Risk & Safety',
-    title: 'Multi-Broker Risk',
-    onEnter() { Risk.render(); }
-  });
-  Router.register('outage', {
-    crumb: 'Risk & Safety',
-    title: 'Outage Detection'
-  });
-
-  // Wire up global UI
-  Router.init();
-  $('#notifBtn').addEventListener('click', () => UI.openNotif());
-  $('#notifClose').addEventListener('click', () => UI.closeNotif());
-  $('#notifOverlay').addEventListener('click', () => UI.closeNotif());
-  $('#settingsBtn').addEventListener('click', () => UI.openSettings());
-  $('#settingsClose').addEventListener('click', () => UI.closeSettings());
-  $('#settingsModal').addEventListener('click', (e) => {
-    if (e.target === $('#settingsModal')) UI.closeSettings();
-  });
-  $$('.toggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
-  $('#hamburger').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
-  $('#exportBtn').addEventListener('click', () => UI.toast('📄 trade-journal.csv exported (demo)'));
-
-  // Initial render of notifications
-  UI.renderNotifications();
-
-  // Navigate to hash if present, otherwise dashboard
-  const initial = window.location.hash.slice(1) || 'dashboard';
-  const validViews = ['dashboard', 'verification', 'partial-fill', 'scorecard', 'heatmap', 'journal', 'calculator', 'risk', 'outage'];
-  Router.navigate(validViews.includes(initial) ? initial : 'dashboard');
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.target.matches('input, select, textarea')) return;
-    const shortcuts = {
-      '1': 'dashboard', '2': 'verification', '3': 'partial-fill',
-      '4': 'scorecard', '5': 'heatmap', '6': 'journal',
-      '7': 'calculator', '8': 'risk', '9': 'outage'
-    };
-    if (shortcuts[e.key]) Router.navigate(shortcuts[e.key]);
-  });
-
-  console.log('%cTradeGuard loaded', 'color:#3DD9C4;font-weight:600;', 'v0.5.0 — view-based architecture');
-});
-</script>
+        // INIT
+        refreshHistory();
+    </script>
 </body>
 </html>
